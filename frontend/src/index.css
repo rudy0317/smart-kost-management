@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================
+   BASE RESET
+======================== */
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* optional: smooth font */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 1. Sembunyiin scrollbar bawaan browser di level paling luar (HTML/BODY) */
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+
+/* 2. Nah, khusus buat class tabel kita, kita munculin lagi & kasih gaya */
+.custom-scrollbar {
+  scrollbar-width: thin;             /* Firefox */
+  scrollbar-color: #cbd5e1 transparent; /* Firefox (thumb & track) */
+}
+
+/* Chrome, Safari, Opera buat class .custom-scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;                /* Lebar scrollbar */
+  height: 6px;               /* Tinggi scrollbar horizontal */
+  display: block;            /* PAKSA MUNCUL LAGI DI SINI */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;       /* Warna abu-abu soft (slate-300) */
+  border-radius: 20px;       /* Biar membulat estetik */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;       /* Berubah jadi warna indigo pas di-hover */
+}

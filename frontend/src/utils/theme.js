@@ -1,0 +1,6 @@
+export const cardStyle = "bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100"
+export const inputStyle = "w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-indigo-50 transition-all"
+export const labelStyle = "text-xs font-black text-slate-400 uppercase ml-1"
+export const btnPrimary = "bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100"
+export const btnAmber = "bg-amber-500 text-white font-bold rounded-2xl shadow-lg shadow-amber-100"
+export const thStyle = "p-6 text-xs font-black text-slate-400 uppercase tracking-widest cursor-pointer hover:text-indigo-600 transition-colors"
