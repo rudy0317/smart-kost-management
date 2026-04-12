@@ -1,21 +1,32 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// --- IMPORT GUEST PAGES ---
-import LandingPage from "./pages/LandingPage"; // Pastikan file ini ada!
-import KatalogGuest from "./pages/KatalogGuest";
-import PemesananPublik from "./pages/PemesananPublik";
+// --- GUEST PAGES (public, tidak butuh login) ---
+import LandingPage from "./pages/Guest/LandingPage";
+import KatalogGuest from "./pages/Guest/KatalogGuest";
 
-// --- IMPORT ADMIN PAGES ---
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Kamar from "./pages/kamar";
-import Penyewa from "./pages/Penyewa";
-import Pembayaran from "./pages/Pembayaran";
-import Pengeluaran from "./pages/Pengeluaran";
-import Laporan from "./pages/Laporan";
-import Pemesanan from "./pages/Pemesanan";
+// --- USER PAGES (role: penyewa) ---
+import LoginUser from "./pages/User/LoginUser";
+import PemesananUser from "./pages/User/PemesananUser";
+import DashboardUser from "./pages/User/DashboardUser";
+
+// --- ADMIN PAGES ---
+import Login from "./pages/Admin/Login";
+import Dashboard from "./pages/Admin/Dashboard";
+import Kamar from "./pages/Admin/Kamar";
+import Penyewa from "./pages/Admin/Penyewa";
+import Pembayaran from "./pages/Admin/Pembayaran";
+import Pengeluaran from "./pages/Admin/Pengeluaran";
+import Laporan from "./pages/Admin/Laporan";
+import Pemesanan from "./pages/Admin/Pemesanan";
+
+// --- PROTECTED ROUTE: hanya user yang sudah login ---
+function RequireUserLogin({ children }) {
+  const token = localStorage.getItem("user_token");
+  if (!token) return <Navigate to="/login-user" replace />;
+  return children;
+}
 
 function App() {
   return (
@@ -23,16 +34,24 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} />
 
       <Routes>
-        {/* --- HALAMAN UNTUK GUEST --- */}
-        {/* Halaman utama sekarang adalah Landing Page */}
+        {/* ── HALAMAN PUBLIC (Guest) ── */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/katalog" element={<KatalogGuest />} />
-        <Route path="/pesan" element={<PemesananPublik />} />
 
-        {/* --- HALAMAN ADMIN --- */}
-        {/* Pindahkan login ke /login biar nggak tabrakan sama Landing Page */}
+        {/* ── HALAMAN USER (butuh login user) ── */}
+        <Route path="/login-user" element={<LoginUser />} />
+        <Route
+          path="/dashboard-user"
+          element={
+            <RequireUserLogin>
+              <DashboardUser />
+            </RequireUserLogin>
+          }
+        />
+        <Route path="/pesan" element={<PemesananUser />} />
+
+        {/* ── HALAMAN ADMIN ── */}
         <Route path="/login" element={<Login />} />
-
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/kamar" element={<Kamar />} />
         <Route path="/penyewa" element={<Penyewa />} />

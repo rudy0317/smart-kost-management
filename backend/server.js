@@ -19,6 +19,8 @@ const pembayaranRoutes = require('./routes/pembayaran');
 const pemesananRoutes = require('./routes/pemesanan');
 const pengeluaranRoutes = require('./routes/pengeluaran');
 const penyewaRoutes = require('./routes/penyewa');
+const usersRoutes = require('./routes/users');
+const userDashboardRoutes = require('./routes/userDashboard');
 
 // 3. Daftarkan Route ke Path API
 // Ini artinya: kalau frontend panggil /api/kamar, dia bakal lari ke file routes/kamar.js
@@ -30,6 +32,8 @@ app.use('/api/pembayaran', pembayaranRoutes);
 app.use('/api/pemesanan', pemesananRoutes);
 app.use('/api/pengeluaran', pengeluaranRoutes);
 app.use('/api/penyewa', penyewaRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/user-dashboard', userDashboardRoutes);
 
 // 4. Test Koneksi Root (Opsional)
 app.get('/', (req, res) => {
