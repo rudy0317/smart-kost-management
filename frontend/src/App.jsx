@@ -20,11 +20,39 @@ import Pembayaran from "./pages/Admin/Pembayaran";
 import Pengeluaran from "./pages/Admin/Pengeluaran";
 import Laporan from "./pages/Admin/Laporan";
 import Pemesanan from "./pages/Admin/Pemesanan";
+import DaftarPindah from "./pages/Admin/PindahKamar/DaftarPindah";
 
 // --- PROTECTED ROUTE: hanya user yang sudah login ---
 function RequireUserLogin({ children }) {
   const token = localStorage.getItem("user_token");
   if (!token) return <Navigate to="/login-user" replace />;
+  return children;
+}
+
+// --- GUEST ONLY ROUTE (user): redirect ke dashboard jika sudah login ---
+function GuestOnlyRoute({ children }) {
+  const token = localStorage.getItem("user_token");
+  if (token && token !== "null" && token !== "undefined") {
+    return <Navigate to="/dashboard-user" replace />;
+  }
+  return children;
+}
+
+// --- PROTECTED ROUTE: hanya admin yang sudah login ---
+function RequireAdminLogin({ children }) {
+  const token = localStorage.getItem("token");
+  if (!token || token === "null" || token === "undefined") {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+// --- ADMIN GUEST ONLY: redirect ke dashboard jika admin sudah login ---
+function AdminGuestOnlyRoute({ children }) {
+  const token = localStorage.getItem("token");
+  if (token && token !== "null" && token !== "undefined") {
+    return <Navigate to="/dashboard" replace />;
+  }
   return children;
 }
 
@@ -39,7 +67,14 @@ function App() {
         <Route path="/katalog" element={<KatalogGuest />} />
 
         {/* ── HALAMAN USER (butuh login user) ── */}
-        <Route path="/login-user" element={<LoginUser />} />
+        <Route
+          path="/login-user"
+          element={
+            <GuestOnlyRoute>
+              <LoginUser />
+            </GuestOnlyRoute>
+          }
+        />
         <Route
           path="/dashboard-user"
           element={
@@ -48,17 +83,25 @@ function App() {
             </RequireUserLogin>
           }
         />
-        <Route path="/pesan" element={<PemesananUser />} />
+        <Route
+          path="/pesan"
+          element={
+            <GuestOnlyRoute>
+              <PemesananUser />
+            </GuestOnlyRoute>
+          }
+        />
 
         {/* ── HALAMAN ADMIN ── */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/kamar" element={<Kamar />} />
-        <Route path="/penyewa" element={<Penyewa />} />
-        <Route path="/pembayaran" element={<Pembayaran />} />
-        <Route path="/pengeluaran" element={<Pengeluaran />} />
-        <Route path="/laporan" element={<Laporan />} />
-        <Route path="/pemesanan" element={<Pemesanan />} />
+        <Route path="/login" element={<AdminGuestOnlyRoute><Login /></AdminGuestOnlyRoute>} />
+        <Route path="/dashboard" element={<RequireAdminLogin><Dashboard /></RequireAdminLogin>} />
+        <Route path="/kamar" element={<RequireAdminLogin><Kamar /></RequireAdminLogin>} />
+        <Route path="/penyewa" element={<RequireAdminLogin><Penyewa /></RequireAdminLogin>} />
+        <Route path="/pembayaran" element={<RequireAdminLogin><Pembayaran /></RequireAdminLogin>} />
+        <Route path="/pengeluaran" element={<RequireAdminLogin><Pengeluaran /></RequireAdminLogin>} />
+        <Route path="/laporan" element={<RequireAdminLogin><Laporan /></RequireAdminLogin>} />
+        <Route path="/pemesanan" element={<RequireAdminLogin><Pemesanan /></RequireAdminLogin>} />
+        <Route path="/pindah-kamar" element={<RequireAdminLogin><DaftarPindah /></RequireAdminLogin>} />
       </Routes>
     </BrowserRouter>
   );

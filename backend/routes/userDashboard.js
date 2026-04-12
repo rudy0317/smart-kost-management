@@ -53,11 +53,22 @@ router.get('/me', verifyToken, (req, res) => {
         [penyewa.id],
         (errBayar, resultsBayar) => {
           if (errBayar) return res.status(500).json({ message: 'Server error parsing bayar' })
-          res.json({
-            status: 'active',
-            penyewa: penyewa,
-            histori_pembayaran: resultsBayar
-          })
+
+          // Cek request pindah kamar yang sedang pending
+          db.query(
+            'SELECT pk.*, k.nomor as nomor_kamar_baru FROM pindah_kamar pk JOIN kamar k ON pk.id_kamar_baru = k.id WHERE pk.id_penyewa = ? AND pk.status = "pending" ORDER BY pk.id DESC LIMIT 1',
+            [penyewa.id],
+            (errPindah, resultsPindah) => {
+              if (errPindah) return res.status(500).json({ message: 'Server error parsing pindah kamar' })
+              
+              res.json({
+                status: 'active',
+                penyewa: penyewa,
+                histori_pembayaran: resultsBayar,
+                request_pindah: resultsPindah.length > 0 ? resultsPindah[0] : null
+              })
+            }
+          )
         }
       )
     }
@@ -116,10 +127,10 @@ router.get('/available-rooms', verifyToken, (req, res) => {
   )
 })
 
-// 6. REQUEST PINDAH KAMAR (INSERT KE PEMESANAN)
+// 6. REQUEST PINDAH KAMAR (INSERT KE PINDAH_KAMAR)
 router.post('/request-move', verifyToken, (req, res) => {
   const userId = req.user.id
-  const { id_kamar, alasan } = req.body
+  const { id_kamar, alasan } = req.body // id_kamar disini adalah id kamar yg baru dituju
 
   // Ambil data user dari penyewa aktif
   db.query(
@@ -129,13 +140,17 @@ router.post('/request-move', verifyToken, (req, res) => {
       if (err || results.length === 0) return res.status(404).json({ message: 'Penyewa aktif tidak ditemukan' })
       const p = results[0]
 
-      const sql = `INSERT INTO pemesanan (nama, no_hp, id_kamar, tanggal_masuk, id_user, status) VALUES (?, ?, ?, CURDATE(), ?, 'pending')`
-      // Kita tambahkan info "Minta Pindah" di bagian nama atau bisa diolah di frontend
-      const infoNama = `${p.nama} (MINTA PINDAH)`
-      
-      db.query(sql, [infoNama, p.no_hp, id_kamar, userId], (err) => {
-        if (err) return res.status(500).json({ message: 'Gagal buat request pindah' })
-        res.json({ message: 'Request pindah kamar berhasil dikirim!' })
+      // Cek apakah ada request pindah yang masih pending untuk penyewa ini
+      db.query('SELECT id FROM pindah_kamar WHERE id_penyewa = ? AND status = "pending"', [p.id], (errCek, resCek) => {
+        if (errCek) return res.status(500).json({ message: 'Server error mengecek request lama' })
+        if (resCek.length > 0) return res.status(400).json({ message: 'Kamu sudah memiliki pengajuan pindah kamar yang belum diproses' })
+
+        const sql = `INSERT INTO pindah_kamar (id_user, id_penyewa, id_kamar_lama, id_kamar_baru, alasan, status) VALUES (?, ?, ?, ?, ?, 'pending')`
+        
+        db.query(sql, [userId, p.id, p.id_kamar, id_kamar, alasan || ''], (err) => {
+          if (err) return res.status(500).json({ message: 'Gagal buat request pindah' })
+          res.json({ message: 'Request pindah kamar berhasil dikirim!' })
+        })
       })
     }
   )

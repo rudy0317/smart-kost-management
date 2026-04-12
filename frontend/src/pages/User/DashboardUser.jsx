@@ -18,7 +18,14 @@ function DashboardUser() {
   
   // State form pengeluaran
   const [form, setForm] = useState({ kategori: 'Listrik', keterangan: '', jumlah: '', tanggal: new Date().toISOString().split('T')[0] })
+  const [isKategoriOpen, setIsKategoriOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+
+  // State untuk Pindah Kamar
+  const [isModalPindahOpen, setIsModalPindahOpen] = useState(false)
+  const [availableRooms, setAvailableRooms] = useState([])
+  const [pindahForm, setPindahForm] = useState({ id_kamar: '', alasan: '' })
+  const [isKamarOpen, setIsKamarOpen] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('user_token')
@@ -73,6 +80,37 @@ function DashboardUser() {
     }
   }
 
+  const handleOpenPindahModal = async () => {
+    try {
+      const token = localStorage.getItem('user_token')
+      const res = await axios.get('http://localhost:5000/api/user-dashboard/available-rooms', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setAvailableRooms(res.data)
+      setIsModalPindahOpen(true)
+    } catch (err) {
+      alert('Gagal mengambil daftar kamar')
+    }
+  }
+
+  const handleSubmitPindah = async (e) => {
+    e.preventDefault()
+    if(!pindahForm.id_kamar) return alert('Pilih kamar terlebih dahulu!')
+    try {
+      const token = localStorage.getItem('user_token')
+      await axios.post('http://localhost:5000/api/user-dashboard/request-move', pindahForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Request pindah kamar dikirim!', background: '#1e293b', color: '#fff' })
+      setIsModalPindahOpen(false)
+      // refresh data
+      const resMe = await axios.get('http://localhost:5000/api/user-dashboard/me', { headers: { Authorization: `Bearer ${token}` } })
+      setData(resMe.data)
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal mengirim request')
+    }
+  }
+
   // Styles from themeUser
   const darkCard = cardUser
   const darkInput = inputUser
@@ -111,12 +149,23 @@ function DashboardUser() {
                       <>
                         <h2 className="text-3xl font-black text-white">Kamar {data.penyewa?.nomor_kamar}</h2>
                         <p className="text-slate-400 text-sm mt-1">{data.penyewa?.fasilitas}</p>
-                        <button 
-                          onClick={() => alert("Fitur Pindah Kamar segera hadir! Silakan hubungi Admin.")}
-                          className="mt-4 px-5 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
-                        >
-                           🔄 Minta Pindah Kamar
-                        </button>
+                        {data.request_pindah ? (
+                          <div className="mt-4 px-5 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between">
+                            <p className="text-amber-400 text-xs font-bold leading-relaxed">
+                              Menunggu persetujuan pindah ke<br/>
+                              <span className="text-amber-300 text-sm font-black">Kamar {data.request_pindah.nomor_kamar_baru}</span>
+                            </p>
+                            <svg className="w-5 h-5 text-amber-500 animate-pulse ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={handleOpenPindahModal}
+                            className="mt-4 px-5 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2 group"
+                          >
+                            <svg className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                            Minta Pindah Kamar
+                          </button>
+                        )}
                       </>
                    ) : data.latest_booking?.status === 'menunggu_pembayaran' ? (
                       <>
@@ -179,16 +228,42 @@ function DashboardUser() {
                    Catat Pengeluaran
                 </h3>
                 <form onSubmit={handleAddPengeluaran} className="space-y-4">
-                   <div>
+                   <div className="relative z-[60]">
                      <label className={darkLabel}>Kategori</label>
-                     <select name="kategori" value={form.kategori} onChange={(e) => setForm({...form, kategori: e.target.value})} className={darkInput}>
-                       <option>Listrik</option>
-                       <option>Makan</option>
-                       <option>Laundry</option>
-                       <option>Galon</option>
-                       <option>Kebutuhan Mandi</option>
-                       <option>Lainnya</option>
-                     </select>
+                     <button
+                       type="button"
+                       onClick={() => setIsKategoriOpen(!isKategoriOpen)}
+                       className={`${darkInput} w-full text-left flex justify-between items-center`}
+                     >
+                       <span>{form.kategori || "Pilih..."}</span>
+                       <span className="text-[10px] opacity-60 ml-2 shrink-0">▼</span>
+                     </button>
+                     <AnimatePresence>
+                       {isKategoriOpen && (
+                         <motion.div
+                           initial={{ opacity: 0, y: -10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           className="absolute top-full mt-2 left-0 right-0 z-[70] bg-slate-800 border border-slate-700 shadow-xl rounded-2xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar"
+                         >
+                           {["Listrik", "Makan", "Laundry", "Galon", "Kebutuhan Mandi", "Lainnya"].map((opt) => (
+                             <button
+                               key={opt}
+                               type="button"
+                               onClick={() => {
+                                 setForm({ ...form, kategori: opt })
+                                 setIsKategoriOpen(false)
+                               }}
+                               className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
+                                 form.kategori === opt ? "bg-cyan-500/20 text-cyan-400 font-bold" : "hover:bg-slate-700 text-slate-300"
+                               }`}
+                             >
+                               {opt}
+                             </button>
+                           ))}
+                         </motion.div>
+                       )}
+                     </AnimatePresence>
                    </div>
                    <div>
                      <label className={darkLabel}>Keterangan</label>
@@ -202,8 +277,9 @@ function DashboardUser() {
                      <label className={darkLabel}>Tanggal</label>
                      <input type="date" value={form.tanggal} onChange={(e) => setForm({...form, tanggal: e.target.value})} className={darkInput} required/>
                    </div>
-                   <motion.button {...hoverClick} type="submit" className={`w-full py-4 ${btnUserPrimary} mt-2`}>
-                     🏠 Simpan Catatan
+                   <motion.button {...hoverClick} type="submit" className={`w-full py-4 ${btnUserPrimary} mt-2 flex items-center justify-center gap-2`}>
+                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                     Simpan Catatan
                    </motion.button>
                 </form>
               </div>
@@ -295,6 +371,76 @@ function DashboardUser() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* MODAL PINDAH KAMAR */}
+        <AnimatePresence>
+          {isModalPindahOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+               <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className={`${darkCard} w-full max-w-md p-6 overflow-hidden relative`}>
+                  <button type="button" onClick={() => setIsModalPindahOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                  <h3 className="text-xl font-black text-white mb-2">Request Pindah Kamar</h3>
+                  <p className="text-slate-400 text-sm mb-6">Pilih kamar kosong yang tersedia untuk dipindah.</p>
+
+                  <form onSubmit={handleSubmitPindah} className="space-y-4">
+                    <div className="relative z-[60]">
+                      <label className={darkLabel}>Pilih Kamar Tujuan</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsKamarOpen(!isKamarOpen)}
+                        className={`${darkInput} w-full text-left flex justify-between items-center`}
+                      >
+                        <span className={pindahForm.id_kamar ? 'text-slate-100' : 'text-slate-500'}>
+                          {pindahForm.id_kamar
+                            ? (() => { const k = availableRooms.find(r => String(r.id) === String(pindahForm.id_kamar)); return k ? `Kamar ${k.nomor} (${k.tipe}) - Rp ${Number(k.harga).toLocaleString('id-ID')}` : '-- Silakan Pilih --'; })()
+                            : '-- Silakan Pilih --'
+                          }
+                        </span>
+                        <span className="text-[10px] opacity-60 ml-2 shrink-0">▼</span>
+                      </button>
+                      <AnimatePresence>
+                        {isKamarOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="absolute top-full mt-2 left-0 right-0 z-[70] bg-slate-800 border border-slate-700 shadow-xl rounded-2xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar"
+                          >
+                            {availableRooms.length === 0 ? (
+                              <p className="px-4 py-3 text-sm text-slate-500 italic">Tidak ada kamar tersedia</p>
+                            ) : availableRooms.map((k) => (
+                              <button
+                                key={k.id}
+                                type="button"
+                                onClick={() => {
+                                  setPindahForm({ ...pindahForm, id_kamar: String(k.id) })
+                                  setIsKamarOpen(false)
+                                }}
+                                className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
+                                  String(pindahForm.id_kamar) === String(k.id) ? 'bg-cyan-500/20 text-cyan-400 font-bold' : 'hover:bg-slate-700 text-slate-300'
+                                }`}
+                              >
+                                Kamar {k.nomor} ({k.tipe}) — Rp {Number(k.harga).toLocaleString('id-ID')}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    <div>
+                      <label className={darkLabel}>Alasan Pindah</label>
+                      <textarea required rows="3" className={`${darkInput} w-full`} placeholder="Contoh: Ingin ganti suasana, cari yang lebih luas..." value={pindahForm.alasan} onChange={e => setPindahForm({...pindahForm, alasan: e.target.value})}></textarea>
+                    </div>
+                    <button type="submit" className={`w-full py-4 ${btnUserPrimary} flex justify-center !rounded-xl mt-6`}>
+                      Kirim Request
+                    </button>
+                  </form>
+               </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </main>
     </div>
   )

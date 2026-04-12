@@ -21,6 +21,7 @@ const PembayaranModal = ({
   setForm,
   penyewa,
 }) => {
+  const [isPenyewaOpen, setIsPenyewaOpen] = useState(false);
   const [isKategoriOpen, setIsKategoriOpen] = useState(false);
   const [isMetodeOpen, setIsMetodeOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -30,6 +31,7 @@ const PembayaranModal = ({
   };
 
   const handleClose = () => {
+    setIsPenyewaOpen(false);
     setIsKategoriOpen(false);
     setIsMetodeOpen(false);
     setIsStatusOpen(false);
@@ -75,22 +77,52 @@ const PembayaranModal = ({
               <form onSubmit={onSubmit} className="space-y-6">
                 {/* 1. PILIH PENYEWA */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-2 relative z-50">
                     <label className={labelStyle}>Nama Penyewa / Kamar</label>
-                    <select
-                      name="id_penyewa"
-                      value={form.id_penyewa}
-                      onChange={handleChange}
-                      required
-                      className={`${inputStyle} w-full`}
+                    <button
+                      type="button"
+                      onClick={() => setIsPenyewaOpen(!isPenyewaOpen)}
+                      className={`${inputStyle} w-full text-left flex justify-between items-center`}
                     >
-                      <option value="">-- Pilih Penyewa --</option>
-                      {penyewa.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nama} (Kamar {p.nomor_kamar})
-                        </option>
-                      ))}
-                    </select>
+                      <span className="truncate">
+                        {form.id_penyewa 
+                          ? (() => {
+                              const p = penyewa.find(x => x.id == form.id_penyewa);
+                              return p ? `${p.nama} (Kamar ${p.nomor_kamar})` : "Pilih Penyewa...";
+                            })()
+                          : "Pilih Penyewa..."}
+                      </span>
+                      <span className="text-[10px] opacity-60 ml-2 shrink-0">▼</span>
+                    </button>
+                    <AnimatePresence>
+                      {isPenyewaOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute top-full mt-2 left-0 right-0 z-[60] bg-white border border-slate-100 shadow-xl rounded-2xl p-3 flex flex-col gap-1.5 max-h-60 overflow-y-auto custom-scrollbar"
+                        >
+                          {penyewa.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                setForm({ ...form, id_penyewa: p.id });
+                                setIsPenyewaOpen(false);
+                              }}
+                              className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
+                                form.id_penyewa == p.id ? "bg-indigo-50 text-indigo-600 font-bold" : "hover:bg-slate-50 text-slate-700"
+                              }`}
+                            >
+                              {p.nama} <span className="text-slate-400 font-normal ml-1">(Kamar {p.nomor_kamar})</span>
+                            </button>
+                          ))}
+                          {penyewa.length === 0 && (
+                            <div className="px-4 py-3 text-sm text-slate-400 text-center">Belum ada penyewa aktif.</div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* 2. KATEGORI */}

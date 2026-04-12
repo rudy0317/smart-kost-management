@@ -115,11 +115,11 @@ function PemesananUser() {
         })
         setShowCredModal(true)
       } else if (myBooking.status === 'menunggu_pembayaran') {
-        setCekStatusMsg('⏳ Pemesanan kamu sudah disetujui admin. Silahkan lakukan pembayaran, lalu tunggu konfirmasi.')
+        setCekStatusMsg('Pemesanan kamu sudah disetujui admin. Silahkan lakukan pembayaran, lalu tunggu konfirmasi.')
       } else if (myBooking.status === 'ditolak') {
-        setCekError('❌ Maaf, pemesanan kamu ditolak oleh admin. Silahkan hubungi kami untuk info lebih lanjut.')
+        setCekError('Maaf, pemesanan kamu ditolak oleh admin. Silahkan hubungi kami untuk info lebih lanjut.')
       } else {
-        setCekStatusMsg('🔄 Pemesanan kamu masih dalam review oleh admin. Mohon tunggu.')
+        setCekStatusMsg('Pemesanan kamu masih dalam review oleh admin. Mohon tunggu.')
       }
     } catch (err) {
       setCekError('Gagal memeriksa status. Silahkan coba lagi.')
@@ -163,8 +163,8 @@ function PemesananUser() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-extrabold">Pembayaran Diterima! 🎉</h2>
-                <p className="text-white/70 text-sm mt-1">Selamat datang, <span className="font-bold text-white">{credInfo.nama}</span>!</p>
+                <h2 className="text-xl font-extrabold tracking-tight">Pembayaran Dikonfirmasi</h2>
+                <p className="text-white/70 text-sm mt-1">Selamat datang, <span className="font-bold text-white">{credInfo.nama}</span></p>
               </div>
 
               {/* Body */}
@@ -237,9 +237,59 @@ function PemesananUser() {
       <div className="max-w-3xl mx-auto px-4 py-10">
 
         {/* Header */}
-        <motion.div {...fadeInUp} className="mb-8">
+        <motion.div {...fadeInUp} className="mb-6">
           <h1 className="text-3xl font-black text-white mb-1">Form Pemesanan</h1>
           <p className="text-slate-400">Pilih kamar dan isi data untuk menyelesaikan pemesanan.</p>
+        </motion.div>
+
+        {/* Info Banner — Alur Kredensial */}
+        <motion.div {...fadeInUp} className="mb-8">
+          <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 bg-indigo-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-indigo-300 font-bold text-sm mb-1">Cara Mendapatkan Akun</p>
+                <p className="text-slate-400 text-xs leading-relaxed mb-3">
+                  Setelah memesan kamar dan admin <span className="text-slate-200 font-semibold">mengonfirmasi pembayaran</span>, kamu akan otomatis mendapatkan kredensial login.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Step 1 */}
+                  <span className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Isi Form Pesan
+                  </span>
+                  {/* Arrow */}
+                  <svg className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  {/* Step 2 */}
+                  <span className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Admin Konfirmasi
+                  </span>
+                  {/* Arrow */}
+                  <svg className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  {/* Step 3 */}
+                  <span className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    Dapat Akun Login
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Alert Sukses / Error */}
@@ -253,9 +303,9 @@ function PemesananUser() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <p className="font-bold text-green-300">Pemesanan berhasil dikirim!</p>
+                <p className="font-bold text-green-300">Pemesanan berhasil dikirim</p>
                 <p className="text-green-400/70 text-sm mt-0.5">
-                  Admin akan segera memproses. Gunakan <strong className="text-green-300">Cek Status</strong> di bawah untuk dapat info login setelah pembayaran dikonfirmasi 🎉
+                  Admin akan segera memproses. Gunakan <strong className="text-green-300">Cek Status</strong> di bawah untuk mendapatkan info login setelah pembayaran dikonfirmasi.
                 </p>
               </div>
             </motion.div>
@@ -379,7 +429,17 @@ function PemesananUser() {
                 type="submit" disabled={submitting || !form.id_kamar}
                 className={`w-full mt-2 py-4 ${btnUserPrimary} px-6 shadow-lg shadow-cyan-500/25 text-base disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {submitting ? 'Mengirim...' : '🏠 Kirim Pemesanan'}
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                    Mengirim...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                    Kirim Pemesanan
+                  </span>
+                )}
               </motion.button>
             </form>
           </div>

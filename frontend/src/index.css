@@ -53,3 +53,39 @@ body::-webkit-scrollbar {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #6366f1;       /* Berubah jadi warna indigo pas di-hover */
 }
+
+/* ========================
+   SWEETALERT2 GLOBAL OVERRIDE
+   Bikin semua button di popup SweetAlert jadi bulat
+======================== */
+.swal2-confirm,
+.swal2-cancel,
+.swal2-deny {
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  padding: 10px 24px !important;
+  font-size: 14px !important;
+  transition: opacity 0.15s ease, transform 0.1s ease !important;
+}
+
+.swal2-confirm:hover,
+.swal2-cancel:hover,
+.swal2-deny:hover {
+  opacity: 0.88 !important;
+  transform: scale(1.02) !important;
+}
+
+.swal2-confirm:active,
+.swal2-cancel:active,
+.swal2-deny:active {
+  transform: scale(0.98) !important;
+}
+
+.swal2-popup {
+  border-radius: 24px !important;
+  padding: 32px !important;
+}
+
+.swal2-actions {
+  gap: 10px !important;
+}

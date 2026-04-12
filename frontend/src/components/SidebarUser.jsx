@@ -75,10 +75,20 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
       text: "Sesi penyewa Anda akan diakhiri.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#6b7280",
       confirmButtonText: "Ya, Keluar",
       cancelButtonText: "Batal",
+      // Dark theme
+      background: "#0f172a",
+      color: "#f1f5f9",
+      iconColor: "#f59e0b",
+      customClass: {
+        popup: "border border-slate-700 rounded-2xl shadow-2xl",
+        title: "text-slate-100 font-bold",
+        htmlContainer: "text-slate-400",
+        confirmButton: "bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl px-6 py-2.5 text-sm",
+        cancelButton: "bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-xl px-6 py-2.5 text-sm",
+      },
+      buttonsStyling: false,
     });
     if (result.isConfirmed) {
       localStorage.removeItem("user_token");

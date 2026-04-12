@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
@@ -9,6 +9,14 @@ import { inputUser, labelUser, btnUserPrimary, textUserAccent } from '../../util
 
 function LoginUser() {
   const navigate = useNavigate()
+
+  // Kalau user sudah login, langsung redirect ke dashboard
+  useEffect(() => {
+    const token = localStorage.getItem('user_token')
+    if (token && token !== 'null' && token !== 'undefined') {
+      navigate('/dashboard-user', { replace: true })
+    }
+  }, [])
   const [tab, setTab] = useState('login') // 'login' | 'register'
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -30,7 +38,7 @@ function LoginUser() {
     try {
       const res = await axios.post('http://localhost:5000/api/users/login', loginForm)
       localStorage.setItem('user_token', res.data.token)
-      navigate('/katalog')
+      navigate('/dashboard-user', { replace: true })
     } catch (err) {
       setError(err.response?.data?.message || 'Login gagal, coba lagi.')
     } finally {
@@ -65,7 +73,7 @@ function LoginUser() {
         password: registerForm.password,
       })
       localStorage.setItem('user_token', res.data.token)
-      navigate('/katalog')
+      navigate('/dashboard-user', { replace: true })
     } catch (err) {
       setError(err.response?.data?.message || 'Registrasi gagal, coba lagi.')
     } finally {
@@ -97,7 +105,7 @@ function LoginUser() {
               </span>
             </Link>
             <p className="text-slate-400 text-sm">
-              {tab === 'login' ? 'Selamat datang kembali!' : 'Daftar akun baru untuk mulai booking'}
+              {tab === 'login' ? 'Selamat datang kembali!' : 'Cara mendapatkan akun di Kost Async'}
             </p>
           </div>
 
@@ -176,62 +184,63 @@ function LoginUser() {
                   </motion.button>
                 </motion.form>
               ) : (
-                <motion.form
-                  key="register"
+                <motion.div
+                  key="register-info"
                   initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}
-                  onSubmit={handleRegister}
                   className="space-y-4"
                 >
-                  {[
-                    { name: 'nama', label: 'Nama Lengkap', placeholder: 'Nama sesuai KTP', type: 'text' },
-                    { name: 'email', label: 'Email', placeholder: 'email@kamu.com', type: 'email' },
-                    { name: 'no_hp', label: 'No. HP / WhatsApp', placeholder: '08123456789', type: 'tel' },
-                    { name: 'password', label: 'Password', placeholder: 'Min. 8 karakter', type: 'password' },
-                    { name: 'confirmPassword', label: 'Konfirmasi Password', placeholder: 'Ulangi password', type: 'password' },
-                  ].map(field => (
-                    <div key={field.name} className="relative">
-                      <label className={darkLabel}>{field.label}</label>
-                      <input
-                        name={field.name}
-                        type={
-                          field.name === 'password'
-                            ? (showPassword ? 'text' : 'password')
-                            : field.name === 'confirmPassword'
-                            ? (showConfirmPassword ? 'text' : 'password')
-                            : field.type
-                        }
-                        value={registerForm[field.name]}
-                        onChange={handleRegisterChange}
-                        required={field.name !== 'no_hp'}
-                        placeholder={field.placeholder}
-                        className={darkInput}
-                      />
-                      {(field.name === 'password' || field.name === 'confirmPassword') && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (field.name === 'password') setShowPassword(!showPassword)
-                            else setShowConfirmPassword(!showConfirmPassword)
-                          }}
-                          className="absolute right-4 top-[38px] text-slate-500 hover:text-slate-300 transition-colors"
-                        >
-                          {field.name === 'password'
-                            ? (showPassword ? <EyeOff size={20} /> : <Eye size={20} />)
-                            : (showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />)
-                          }
-                        </button>
-                      )}
+                  {/* Info banner */}
+                  <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-4 flex items-start gap-3">
+                    <div className="w-8 h-8 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                     </div>
-                  ))}
-                  <motion.button
-                    {...hoverClick}
-                    type="submit" disabled={loading}
-                    className={`w-full mt-2 py-3.5 ${btnUserPrimary} px-6 shadow-lg shadow-cyan-500/25 text-base disabled:opacity-60`}
-                  >
-                    {loading ? 'Mendaftarkan...' : 'Daftar Sekarang'}
-                  </motion.button>
-                </motion.form>
+                    <div>
+                      <p className="text-cyan-300 font-bold text-sm mb-1">Akun dibuat otomatis oleh sistem</p>
+                      <p className="text-slate-400 text-xs leading-relaxed">
+                        Kamu tidak perlu daftar manual. Akun akan <span className="text-slate-200 font-semibold">aktif otomatis</span> setelah admin mengonfirmasi pembayaran kamarmu.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Steps */}
+                  <div className="space-y-3">
+                    {[
+                      { num: '1', title: 'Isi Form Pemesanan', desc: 'Pilih kamar dan lengkapi data diri kamu', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
+                      { num: '2', title: 'Tunggu Konfirmasi Admin', desc: 'Admin akan memverifikasi dan menghubungimu', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+                      { num: '3', title: 'Dapat Akun & Login', desc: 'Kredensial dikirim otomatis setelah pembayaran dikonfirmasi', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+                    ].map(step => (
+                      <div key={step.num} className="flex items-start gap-3 bg-slate-800/50 rounded-2xl px-4 py-3 border border-slate-700/50">
+                        <span className={`w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-black flex-shrink-0 mt-0.5 ${step.color}`}>
+                          {step.num}
+                        </span>
+                        <div>
+                          <p className="text-slate-200 font-semibold text-sm">{step.title}</p>
+                          <p className="text-slate-500 text-xs mt-0.5">{step.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA ke form pesan */}
+                  <motion.div {...hoverClick}>
+                    <Link
+                      to="/pesan"
+                      className={`w-full mt-1 py-3.5 ${btnUserPrimary} px-6 shadow-lg shadow-cyan-500/25 text-base font-bold rounded-2xl flex items-center justify-center gap-2`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Pesan Kamar Sekarang
+                    </Link>
+                  </motion.div>
+
+                  <p className="text-center text-slate-600 text-xs">
+                    Sudah punya akun? Klik tab <span className="text-slate-400 font-semibold">Masuk</span> di atas.
+                  </p>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>

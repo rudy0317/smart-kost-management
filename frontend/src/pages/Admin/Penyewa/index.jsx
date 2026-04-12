@@ -7,6 +7,8 @@ import PenyewaModal from "./PenyewaModal";
 import { toast } from "react-toastify";
 import { fadeInUp, hoverClick } from "../../../utils/animations";
 import { btnPrimary, inputStyle } from "../../../utils/theme";
+import axios from "axios";
+import Swal from "sweetalert2";
 
 function Penyewa() {
   const { penyewa, kamar, fetchPenyewa, fetchKamar, savePenyewa, deletePenyewa } = usePenyewa();
@@ -63,6 +65,63 @@ function Penyewa() {
 
   const handleDelete = (id) => {
     deletePenyewa(id);
+  };
+
+  const handleShowAkun = async (item) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/penyewa/${item.id}/akun`);
+      const akun = response.data;
+
+      Swal.fire({
+        title: "Informasi Akun User",
+        html: `
+          <div class="text-left bg-slate-50 p-4 rounded-xl mt-2 border border-slate-200">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Email / Username</p>
+            <p class="font-mono font-bold text-indigo-600 mb-3 break-all">${akun.email}</p>
+            
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Password Default</p>
+            <p class="font-mono font-bold text-slate-800">${akun.no_hp}</p>
+          </div>
+          <p class="text-xs text-slate-500 mt-4">*Apabila penyewa telah mengganti passwordnya, admin tidak dapat melihatnya.</p>
+        `,
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#4f46e5",
+        cancelButtonText: "Hapus Akun User",
+        cancelButtonColor: "#ef4444",
+        reverseButtons: true
+      }).then(async (result) => {
+        if (result.dismiss === Swal.DismissReason.cancel) {
+          // Konfirmasi Hapus Akun
+          const confirmDelete = await Swal.fire({
+            title: "Hapus Akun User?",
+            text: "Penyewa ini tidak akan bisa login lagi. Data penyewa tidak akan terhapus, hanya memutus akses login saja. Yakin?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Ya, Hapus!",
+            cancelButtonText: "Batal"
+          });
+
+          if (confirmDelete.isConfirmed) {
+            try {
+              await axios.delete(`http://localhost:5000/api/penyewa/${item.id}/akun`);
+              toast.success("Akun login berhasil dihapus!");
+            } catch (err) {
+              toast.error(err.response?.data?.message || "Gagal menghapus akun user");
+            }
+          }
+        }
+      });
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        Swal.fire("Info", "Penyewa ini tidak memiliki akun login yang terhubung.", "info");
+      } else {
+        toast.error("Gagal mengambil data akun");
+      }
+    }
   };
 
   const handleSort = (key) => {
@@ -234,6 +293,7 @@ function Penyewa() {
           data={processedData}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onShowAkun={handleShowAkun}
           renderSortIcon={renderSortIcon}
           onSort={handleSort}
         />

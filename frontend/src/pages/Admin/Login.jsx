@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -13,6 +13,14 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false)
 
   const navigate = useNavigate()
+
+  // Kalau admin sudah login, langsung redirect ke dashboard
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token && token !== 'null' && token !== 'undefined') {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -34,7 +42,7 @@ function Login() {
       localStorage.setItem('token', res.data.token)
 
       toast.success('Login berhasil')
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
 
     } catch (err) {
       setError('Username atau password salah!')
