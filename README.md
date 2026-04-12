@@ -54,4 +54,4 @@ npm run dev
 - **Admin**: `Login Admin -> Dashboard -> Kelola Kamar/Pemesanan/Penyewa`
 
 ---
-Dibuat dengan ❤️ oleh Kelompok 1 - Sistem Informasi
+Dibuat oleh Kelompok 1 (Rudy, Yunus, Dinda, Julian dan Rizkul  - Teknik Informatika
