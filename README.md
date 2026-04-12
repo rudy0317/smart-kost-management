@@ -79,7 +79,9 @@ npm run dev
 
 ## 👥 Tim Pengembang
 Proyek ini dikembangkan oleh **Kelompok 1 - Teknik Informatika**:
-- **Rudy, Yunus, Dinda, Julian, dan Rizkul**
+- **Rudy**: Lead Developer / Fullstack Developer
+- **Yunus**: Mock Up Application
+- **Dinda, Julian, dan Rizkul**: Documentation
 
 ---
 © 2026 KOST ASYNC Team. All Rights Reserved.
