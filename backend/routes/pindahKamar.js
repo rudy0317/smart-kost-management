@@ -69,4 +69,39 @@ router.post('/:id/tolak', (req, res) => {
   })
 })
 
+// 4. GET PENYEWA AKTIF (UNTUK DROPDOWN ADMIN)
+router.get('/active-tenants', (req, res) => {
+  db.query('SELECT id, nama, no_hp, id_kamar FROM penyewa WHERE status = "aktif"', (err, results) => {
+    if (err) return res.status(500).json({ message: 'Server error' })
+    res.json(results)
+  })
+})
+
+// 5. GET KAMAR KOSONG (UNTUK DROPDOWN ADMIN)
+router.get('/available-rooms', (req, res) => {
+  db.query('SELECT id, nomor, tipe FROM kamar WHERE status IN ("kosong", "tersedia")', (err, results) => {
+    if (err) return res.status(500).json({ message: 'Server error' })
+    res.json(results)
+  })
+})
+
+// 6. TAMBAH REQUEST PINDAH MANUAL (OLEH ADMIN)
+router.post('/', (req, res) => {
+  const { id_penyewa, id_kamar_baru, alasan } = req.body
+
+  // Cari data penyewa untuk mendapatkan id_user dan id_kamar_lama
+  db.query('SELECT id_user, id_kamar FROM penyewa WHERE id = ?', [id_penyewa], (err, results) => {
+    if (err || results.length === 0) return res.status(404).json({ message: 'Penyewa tidak ditemukan' })
+    
+    const p = results[0]
+    const sql = `INSERT INTO pindah_kamar (id_user, id_penyewa, id_kamar_lama, id_kamar_baru, alasan, status) VALUES (?, ?, ?, ?, ?, 'pending')`
+    
+    db.query(sql, [p.id_user, id_penyewa, p.id_kamar, id_kamar_baru, alasan || ''], (errInsert) => {
+      if (errInsert) return res.status(500).json({ message: 'Gagal membuat request pindah manual' })
+      res.json({ message: 'Request pindah kamar manual berhasil dibuat!' })
+    })
+  })
+})
+
 module.exports = router
+

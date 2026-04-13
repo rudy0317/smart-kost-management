@@ -390,7 +390,7 @@ function Dashboard() {
                     Aktivitas Terbaru
                   </h3>
                 </div>
-                <div className="p-6 flex flex-col gap-3">
+                <div className="p-6 flex flex-col gap-3 overflow-y-auto max-h-[345px] custom-scrollbar">
                   {data.aktivitas.length === 0 ? (
                     <p className="py-6 text-center text-sm font-medium text-slate-400">
                       Belum ada aktivitas tercatat.
