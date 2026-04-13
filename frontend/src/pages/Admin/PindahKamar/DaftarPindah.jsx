@@ -19,6 +19,7 @@ import Sidebar from "../../../components/Sidebar";
 const DaftarPindah = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [isPenyewaOpen, setIsPenyewaOpen] = useState(false);
   const [isKamarOpen, setIsKamarOpen] = useState(false);
@@ -121,6 +122,15 @@ const DaftarPindah = () => {
     }
   };
 
+  const filteredRequests = requests.filter(req => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (req.nama || '').toLowerCase().includes(searchLower) ||
+      (req.nomor_kamar_lama || '').toLowerCase().includes(searchLower) ||
+      (req.nomor_kamar_baru || '').toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
       <Sidebar />
@@ -130,19 +140,28 @@ const DaftarPindah = () => {
         animate="animate"
         className="flex-1 p-10"
       >
-        <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
             <h1 className="text-4xl font-black text-slate-800 tracking-tight">Request Pindah</h1>
             <p className="text-slate-500 mt-1">Kelola permohonan pindah kamar penyewa.</p>
           </div>
-          <motion.button 
-            whileHover={hoverClick.whileHover}
-            whileTap={hoverClick.whileTap}
-            onClick={handleOpenModal} 
-            className={`${btnPrimary} px-8 py-3.5 text-[15px] whitespace-nowrap flex items-center justify-center gap-2`}
-          >
-            + Tambah Manual
-          </motion.button>
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="Cari penyewa atau kamar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`${inputStyle} sm:w-64`}
+            />
+            <motion.button 
+              whileHover={hoverClick.whileHover}
+              whileTap={hoverClick.whileTap}
+              onClick={handleOpenModal} 
+              className={`${btnPrimary} px-8 py-3.5 text-[15px] whitespace-nowrap flex items-center justify-center gap-2`}
+            >
+              + Tambah Manual
+            </motion.button>
+          </div>
         </div>
 
         {loading ? (
@@ -165,9 +184,9 @@ const DaftarPindah = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {requests.length === 0 ? (
+              {filteredRequests.length === 0 ? (
                 <tr><td colSpan="7" className="text-center p-8 text-slate-500 font-medium">Belum ada request pindah kamar</td></tr>
-              ) : requests.map((req) => (
+              ) : filteredRequests.map((req) => (
                 <tr key={req.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="p-4 px-6 text-sm text-slate-600">
                     {new Date(req.created_at).toLocaleDateString('id-ID')}
