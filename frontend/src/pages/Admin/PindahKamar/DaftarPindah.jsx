@@ -139,7 +139,7 @@ const DaftarPindah = () => {
             whileHover={hoverClick.whileHover}
             whileTap={hoverClick.whileTap}
             onClick={handleOpenModal} 
-            className={`${btnPrimary} px-6 py-3 whitespace-nowrap flex items-center justify-center gap-2`}
+            className={`${btnPrimary} px-8 py-3.5 text-[15px] whitespace-nowrap flex items-center justify-center gap-2`}
           >
             + Tambah Manual
           </motion.button>
