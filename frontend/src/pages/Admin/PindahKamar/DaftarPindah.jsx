@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion, AnimatePresence } from "framer-motion";
-import { fadeInUp, staggerContainer } from "../../../utils/animations";
+import { fadeInUp, staggerContainer, hoverClick } from "../../../utils/animations";
 import { 
   btnPrimary, cardStyle, 
   labelStyle, thStyle, inputStyle 
@@ -136,10 +136,10 @@ const DaftarPindah = () => {
             <p className="text-slate-500 mt-1">Kelola permohonan pindah kamar penyewa.</p>
           </div>
           <motion.button 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={hoverClick.whileHover}
+            whileTap={hoverClick.whileTap}
             onClick={handleOpenModal} 
-            className={btnPrimary + " px-5 py-2.5"}
+            className={`${btnPrimary} px-6 py-3 whitespace-nowrap flex items-center justify-center gap-2`}
           >
             + Tambah Manual
           </motion.button>
