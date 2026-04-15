@@ -8,6 +8,15 @@ import PemesananModal from "./PemesananModal";
 import { usePemesanan } from "../../../hooks/usePemesanan";
 import { fadeInUp, hoverClick } from "../../../utils/animations";
 import { btnPrimary, inputStyle } from "../../../utils/theme";
+import { 
+  ChevronUp, 
+  ChevronDown, 
+  ChevronsUpDown, 
+  Plus, 
+  Search, 
+  Check,
+  Filter
+} from "lucide-react";
 
 function Pemesanan() {
   const {
@@ -102,11 +111,11 @@ function Pemesanan() {
 
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key)
-      return <span className="ml-1 opacity-30 text-[10px]">↕</span>;
+      return <ChevronsUpDown className="inline ml-1 opacity-30" size={12} />;
     return sortConfig.direction === "asc" ? (
-      <span className="ml-1 text-indigo-600 text-[10px]">▲</span>
+      <ChevronUp className="inline ml-1 text-indigo-600" size={12} />
     ) : (
-      <span className="ml-1 text-indigo-600 text-[10px]">▼</span>
+      <ChevronDown className="inline ml-1 text-indigo-600" size={12} />
     );
   };
 
@@ -134,24 +143,18 @@ function Pemesanan() {
             <div className="relative z-20">
               <div
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`${inputStyle} md:w-56 flex items-center justify-between cursor-pointer font-bold text-slate-600 select-none`}
+                className={`${inputStyle} md:w-56 flex items-center justify-between cursor-pointer font-bold text-slate-600 select-none group`}
               >
-                <span>{getFilterLabel()}</span>
-                <svg
-                  className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${
+                <div className="flex items-center gap-2">
+                  <Filter size={16} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                  <span>{getFilterLabel()}</span>
+                </div>
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform duration-300 ${
                     isFilterOpen ? "rotate-180" : ""
                   }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                />
               </div>
 
               <AnimatePresence>
@@ -190,19 +193,7 @@ function Pemesanan() {
                         >
                           {item.label}
                           {statusFilter === item.val && (
-                            <svg
-                              className="w-4 h-4 text-indigo-600"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
+                             <Check size={16} className="text-indigo-600" />
                           )}
                         </div>
                       ))}
@@ -213,13 +204,16 @@ function Pemesanan() {
             </div>
             {/* ----------------------------------- */}
 
-            <input
-              type="text"
-              placeholder="Cari nama atau nomor HP..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`${inputStyle} md:w-64`}
-            />
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+              <input
+                type="text"
+                placeholder="Cari nama atau nomor HP..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`${inputStyle} md:w-64 pl-12`}
+              />
+            </div>
 
             <motion.button
               whileHover={hoverClick.whileHover}
@@ -227,7 +221,8 @@ function Pemesanan() {
               onClick={() => setIsModalOpen(true)}
               className={`${btnPrimary} px-6 py-3 whitespace-nowrap flex items-center justify-center gap-2`}
             >
-              + Tambah Manual
+              <Plus size={20} />
+              Tambah Manual
             </motion.button>
           </div>
         </div>

@@ -239,9 +239,12 @@ function Kamar() {
               whileHover={hoverClick.whileHover}
               whileTap={hoverClick.whileTap}
               onClick={() => setIsModalOpen(true)}
-              className={`${btnPrimary} px-6 py-3 whitespace-nowrap flex items-center justify-center gap-2`}
+              className={`${btnPrimary} px-6 py-3 whitespace-nowrap flex items-center justify-center gap-2 shadow-lg shadow-indigo-200`}
             >
-              + Tambah Kamar
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+              </svg>
+              Tambah Kamar
             </motion.button>
           </div>
         </div>

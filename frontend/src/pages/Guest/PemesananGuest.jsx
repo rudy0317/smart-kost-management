@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 
 function PemesananPublik() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    nama: '', no_hp: '', id_kamar: '', tanggal_masuk: ''
+    nama: '', no_hp: '', id_kamar: '', tanggal_masuk: '',
+    metode_bayar: 'Tunai/Cash', kode_unik: 0
   })
   const [kamar, setKamar] = useState([])
   const [sukses, setSukses] = useState(false)
+  const [isKamarOpen, setIsKamarOpen] = useState(false)
 
   // State untuk fitur cek status
   const [noHpCek, setNoHpCek] = useState('')
@@ -31,7 +34,9 @@ function PemesananPublik() {
   }
 
   const handleKamarClick = (id) => {
-    setForm({ ...form, id_kamar: id })
+    // Generate kode unik random 100-999
+    const randomCode = Math.floor(Math.random() * 899) + 100
+    setForm({ ...form, id_kamar: id, kode_unik: randomCode })
     const formElement = document.getElementById('order-form')
     formElement?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -41,7 +46,10 @@ function PemesananPublik() {
     try {
       await axios.post('http://localhost:5000/api/pemesanan', form)
       setSukses(true)
-      setForm({ nama: '', no_hp: '', id_kamar: '', tanggal_masuk: '' })
+      setForm({ 
+        nama: '', no_hp: '', id_kamar: '', tanggal_masuk: '', 
+        metode_bayar: 'Tunai/Cash', kode_unik: 0 
+      })
       setTimeout(() => setSukses(false), 8000)
     } catch (err) {
       console.error("Gagal memesan", err)
@@ -219,8 +227,11 @@ function PemesananPublik() {
               )}
 
               {kamar.map(k => (
-                <div
+                <motion.div
                   key={k.id}
+                  layout
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                   onClick={() => handleKamarClick(k.id)}
                   className={`group flex flex-col sm:flex-row sm:justify-between sm:items-center p-5 rounded-2xl shadow-sm transition-all duration-300 border-2 cursor-pointer
                     ${form.id_kamar === k.id
@@ -228,11 +239,20 @@ function PemesananPublik() {
                       : 'border-transparent bg-white hover:border-gray-300 hover:shadow-md'}`}
                 >
                   <div className="mb-3 sm:mb-0">
-                    <p className="font-bold text-gray-800 text-lg flex items-center">
+                    <p className="font-bold text-gray-800 text-lg flex items-center gap-2">
                       Kamar {k.nomor}
-                      {form.id_kamar === k.id && (
-                        <span className="ml-2 text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">Terpilih</span>
-                      )}
+                      <AnimatePresence>
+                        {form.id_kamar === k.id && (
+                          <motion.span 
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-bold"
+                          >
+                            Terpilih
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </p>
                     <p className="text-sm text-gray-500 mt-1">Fasilitas: {k.fasilitas}</p>
                   </div>
@@ -242,7 +262,7 @@ function PemesananPublik() {
                     </p>
                     <p className="text-xs text-gray-400 font-medium">/ bulan</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -250,46 +270,160 @@ function PemesananPublik() {
           {/* SECTION FORM */}
           <div id="order-form">
             <h2 className="text-xl font-bold text-gray-800 mb-5 border-b pb-2">Data Pemesanan</h2>
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
                 <input
                   name="nama" placeholder="Masukkan nama sesuai KTP"
                   value={form.nama} onChange={handleChange} required
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-gray-800 outline-none transition-all"
+                  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">No. HP / WhatsApp</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">No. HP / WhatsApp</label>
                 <input
                   name="no_hp" placeholder="Contoh: 08123456789"
                   value={form.no_hp} onChange={handleChange} required
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-gray-800 outline-none transition-all"
+                  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Pilih Kamar</label>
-                  <select
-                    name="id_kamar" value={form.id_kamar} onChange={handleChange} required
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-gray-800 outline-none transition-all cursor-pointer"
+                <div className="relative">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Kamar</label>
+                  <div
+                    onClick={() => setIsKamarOpen(!isKamarOpen)}
+                    className={`w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-between cursor-pointer transition-all shadow-sm
+                      ${isKamarOpen ? 'bg-white ring-2 ring-indigo-500 border-transparent' : 'hover:border-gray-300'}`}
                   >
-                    <option value="">-- Silakan Pilih --</option>
-                    {kamar.map(k => (
-                      <option key={k.id} value={k.id}>Kamar {k.nomor} (Rp {Number(k.harga).toLocaleString('id-ID')})</option>
-                    ))}
-                  </select>
+                    <span className={`text-sm ${form.id_kamar ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>
+                      {form.id_kamar 
+                        ? `Kamar ${kamar.find(k => k.id === form.id_kamar)?.nomor}` 
+                        : '-- Pilih Kamar --'}
+                    </span>
+                    <motion.svg 
+                      animate={{ rotate: isKamarOpen ? 180 : 0 }}
+                      className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </motion.svg>
+                  </div>
+
+                  <AnimatePresence>
+                    {isKamarOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsKamarOpen(false)} />
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          className="absolute z-20 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden py-2 max-h-60 overflow-y-auto custom-scrollbar"
+                        >
+                          {kamar.length > 0 ? kamar.map(k => (
+                            <div
+                              key={k.id}
+                              onClick={() => {
+                                handleKamarClick(k.id);
+                                setIsKamarOpen(false);
+                              }}
+                              className={`px-5 py-3 text-sm cursor-pointer transition-colors flex justify-between items-center
+                                ${form.id_kamar === k.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                              <span>Kamar {k.nomor}</span>
+                              <span className="text-[10px] font-black opacity-50 uppercase tracking-widest">
+                                Rp {Number(k.harga).toLocaleString('id-ID')}
+                              </span>
+                            </div>
+                          )) : (
+                            <div className="px-5 py-3 text-sm text-gray-400 italic text-center">Tidak ada kamar tersedia</div>
+                          )}
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                  <input type="hidden" name="id_kamar" value={form.id_kamar} required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tanggal Masuk</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Masuk</label>
                   <input
                     name="tanggal_masuk" type="date"
                     value={form.tanggal_masuk} onChange={handleChange} required
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-gray-800 outline-none transition-all"
+                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
                   />
                 </div>
+              </div>
+
+              {/* ─── METODE PEMBAYARAN ─── */}
+              <div className="bg-white border-t border-slate-100 mt-6 pt-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Metode Pembayaran
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                  {['Tunai/Cash', 'Transfer Bank', 'QRIS'].map((m) => (
+                    <div
+                      key={m}
+                      onClick={() => setForm({ ...form, metode_bayar: m })}
+                      className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center gap-2
+                        ${form.metode_bayar === m 
+                          ? 'border-indigo-600 bg-indigo-50/50 shadow-indigo-100 shadow-lg' 
+                          : 'border-gray-50 bg-gray-50 hover:border-gray-200'}`}
+                    >
+                      <div className={`p-2 rounded-xl ${form.metode_bayar === m ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400'}`}>
+                        {m === 'QRIS' && <svg className="w-5 h-5 font-bold" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3V3zm0 14h4v4H3v-4zM17 3h4v4h-4V3zM14 14h3v3h-3v-3zm3-3h4v3h-4v-3zm0 6h4v4h-4v-4zM14 17h3v4h-3v-4zM11 11h3v3h-3v-3zm0 3h3v3h-3v-3zm3-3h3v3h-3v-3zM3 11h4v4h-4v-4zM17 11h4v4h-4v-4z"/></svg>}
+                        {m === 'Transfer Bank' && <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>}
+                        {m === 'Tunai/Cash' && <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                      </div>
+                      <span className={`text-xs font-bold ${form.metode_bayar === m ? 'text-indigo-600' : 'text-gray-500'}`}>{m}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Info dinamis berdasarkan pilihan */}
+                {form.id_kamar && (
+                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm text-gray-500 font-medium tracking-tight">Total Pembayaran</span>
+                      <div className="text-right">
+                        <span className="block text-lg font-black text-slate-800">
+                          Rp {(Number(kamar.find(k => k.id === form.id_kamar)?.harga || 0) + (form.metode_bayar !== 'Tunai/Cash' ? form.kode_unik : 0)).toLocaleString('id-ID')}
+                        </span>
+                        {form.metode_bayar !== 'Tunai/Cash' && (
+                          <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Sudah termasuk kode unik Rp {form.kode_unik}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {form.metode_bayar === 'QRIS' && (
+                      <div className="mt-4 flex flex-col items-center">
+                        <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 mb-3">
+                          <img src="/images/qris.png" alt="QRIS" className="w-48 h-auto" />
+                        </div>
+                        <p className="text-[10px] text-center text-gray-400 font-medium">
+                          Silakan scan QRIS di atas dan pastikan nominal sesuai<br />sampai 3 digit terakhir untuk verifikasi otomatis.
+                        </p>
+                      </div>
+                    )}
+
+                    {form.metode_bayar === 'Transfer Bank' && (
+                      <div className="mt-4 p-4 bg-indigo-600 rounded-2xl text-white">
+                        <p className="text-xs opacity-80 mb-1">Nomor Rekening BCA</p>
+                        <p className="text-xl font-black tracking-widest mb-3">123-456-7890</p>
+                        <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest">A/N Kost Mewah Indonesia</p>
+                      </div>
+                    )}
+
+                    {form.metode_bayar === 'Tunai/Cash' && (
+                      <p className="text-xs text-gray-500 italic mt-2">
+                        * Silakan bayar tunai di lokasi saat check-in setelah disetujui admin.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button

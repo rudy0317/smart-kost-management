@@ -66,6 +66,18 @@ export const usePemesanan = () => {
     }
   };
 
+  const sinyalBayar = async (id) => {
+    try {
+      await axios.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`);
+      toast.success("Konfirmasi pembayaran terkirim! Admin akan segera memverifikasi.");
+      await fetchPemesanan();
+      return true;
+    } catch (error) {
+      toast.error("Gagal mengirim sinyal pembayaran.");
+      return false;
+    }
+  };
+
   const konfirmasiBayar = async (id, metode_bayar) => {
     try {
       const res = await axios.post(`http://localhost:5000/api/pemesanan/${id}/konfirmasi-bayar`, { metode_bayar });
@@ -77,12 +89,12 @@ export const usePemesanan = () => {
       if (res.data?.new_account) {
         const { email, no_hp, nama } = res.data.new_account;
         await Swal.fire({
-          title: '✅ Pembayaran Dikonfirmasi!',
+          title: 'Pembayaran Dikonfirmasi',
           html: `
             <div style="text-align:left; font-family:'Inter',sans-serif;">
               <p style="color:#475569; margin-bottom:16px; font-size:14px;">
                 Akun otomatis telah dibuat untuk <strong style="color:#1e293b;">${nama}</strong>. 
-                Informasi login berikut akan dikirimkan ke penyewa.
+                Sistem telah mengaktifkan penyewa & mencatat transaksi.
               </p>
               <div style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px;">
                 <p style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Detail Login Penyewa</p>
@@ -98,21 +110,31 @@ export const usePemesanan = () => {
                 </div>
               </div>
               <p style="font-size:12px; color:#94a3b8; text-align:center;">
-                💡 Penyewa bisa login menggunakan No. HP sebagai <em>email</em> dan <em>password</em>
+                Berikan info ini kepada penyewa untuk akses dashboard.
               </p>
             </div>
           `,
           icon: 'success',
-          confirmButtonText: '✓ Selesai',
+          confirmButtonText: 'Selesai',
           confirmButtonColor: '#4f46e5',
           width: '480px',
           customClass: {
-            popup: 'rounded-3xl',
-            confirmButton: 'rounded-xl',
+            popup: 'rounded-[1.5rem] shadow-2xl',
+            confirmButton: 'rounded-xl px-10 py-3 font-bold',
           },
         });
       } else {
-        toast.success("Pembayaran dikonfirmasi! Penyewa kini aktif.");
+        await Swal.fire({
+          title: 'Pembayaran Disetujui!',
+          text: 'Status penyewa kini telah Aktif dan transaksi pembayaran sudah tercatat otomatis.',
+          icon: 'success',
+          confirmButtonText: 'Mantap!',
+          confirmButtonColor: '#10b981',
+          customClass: {
+            popup: 'rounded-[1.5rem] shadow-2xl',
+            confirmButton: 'rounded-xl px-10 py-3 font-bold',
+          },
+        });
       }
 
       return true;
@@ -153,6 +175,7 @@ export const usePemesanan = () => {
     fetchKosongKamar,
     savePemesanan,
     updateStatus,
+    sinyalBayar,
     konfirmasiBayar,
     deletePemesanan,
   };

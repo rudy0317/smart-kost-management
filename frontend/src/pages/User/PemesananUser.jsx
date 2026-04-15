@@ -23,9 +23,11 @@ function PemesananUser() {
   const [submitting, setSubmitting] = useState(false)
   const [sukses, setSukses] = useState(false)
   const [error, setError] = useState('')
+  const [isKamarOpen, setIsKamarOpen] = useState(false)
 
   const [form, setForm] = useState({
     nama: '', no_hp: '', id_kamar: preselectedKamar, tanggal_masuk: '',
+    metode_bayar: 'Tunai/Cash', kode_unik: 0
   })
 
   // ─── State Cek Status ───────────────────────────────────────────────
@@ -35,6 +37,7 @@ function PemesananUser() {
   const [cekStatusMsg, setCekStatusMsg] = useState('')
   const [showCredModal, setShowCredModal] = useState(false)
   const [credInfo, setCredInfo] = useState(null)
+  const [cekData, setCekData] = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem('user_token')
@@ -59,7 +62,9 @@ function PemesananUser() {
   }
 
   const handleKamarClick = (id) => {
-    setForm({ ...form, id_kamar: id })
+    // Generate kode unik random 100-999
+    const randomCode = Math.floor(Math.random() * 899) + 100
+    setForm({ ...form, id_kamar: id, kode_unik: randomCode })
     document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth' })
   }
 
@@ -81,7 +86,13 @@ function PemesananUser() {
       const headers = token && token !== "null" ? { Authorization: `Bearer ${token}` } : {}
       await axios.post('http://localhost:5000/api/pemesanan', form, { headers })
       setSukses(true)
-      setForm(prev => ({ ...prev, id_kamar: '', tanggal_masuk: '' }))
+      setForm(prev => ({ 
+        ...prev, 
+        id_kamar: '', 
+        tanggal_masuk: '',
+        metode_bayar: 'Tunai/Cash',
+        kode_unik: 0
+      }))
       window.scrollTo({ top: 0, behavior: 'smooth' })
       setTimeout(() => setSukses(false), 8000)
     } catch (err) {
@@ -114,17 +125,30 @@ function PemesananUser() {
           nomor_kamar: myBooking.nomor_kamar,
         })
         setShowCredModal(true)
-      } else if (myBooking.status === 'menunggu_pembayaran') {
-        setCekStatusMsg('Pemesanan kamu sudah disetujui admin. Silahkan lakukan pembayaran, lalu tunggu konfirmasi.')
-      } else if (myBooking.status === 'ditolak') {
-        setCekError('Maaf, pemesanan kamu ditolak oleh admin. Silahkan hubungi kami untuk info lebih lanjut.')
       } else {
-        setCekStatusMsg('Pemesanan kamu masih dalam review oleh admin. Mohon tunggu.')
+        setCekData(myBooking)
+        if (myBooking.status === 'menunggu_pembayaran') {
+          setCekStatusMsg('Pemesanan sudah disetujui. Silahkan bayar & klik konfirmasi di bawah.')
+        } else if (myBooking.status === 'menunggu_verifikasi') {
+          setCekStatusMsg('Pembayaran sedang diverifikasi admin. Mohon tunggu sebentar.')
+        } else if (myBooking.status === 'ditolak') {
+          setCekError('Maaf, pemesanan kamu ditolak oleh admin. Silahkan hubungi kami untuk info lebih lanjut.')
+        } else {
+          setCekStatusMsg('Pemesanan kamu masih dalam review oleh admin. Mohon tunggu.')
+        }
       }
-    } catch (err) {
-      setCekError('Gagal memeriksa status. Silahkan coba lagi.')
     } finally {
       setIsCekLoading(false)
+    }
+  }
+
+  const handleSudahBayar = async (id) => {
+    try {
+      await axios.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`)
+      setCekStatusMsg('Pembayaran sedang diverifikasi admin. Mohon tunggu sebentar.')
+      setCekData(prev => ({ ...prev, status: 'menunggu_verifikasi' }))
+    } catch (err) {
+      setCekError('Gagal mengirim konfirmasi bayar.')
     }
   }
 
@@ -382,7 +406,7 @@ function PemesananUser() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className={darkLabel}>Nama Lengkap</label>
-                <input name="nama" value={form.nama} onChange={handleChange} required className={darkInput} placeholder="Nama sesuai KTP" />
+                <input name="nama" value={form.nama} onChange={handleChange} required className={`${darkInput} rounded-2xl`} placeholder="Nama sesuai KTP" />
                 {userData && <p className="text-xs text-slate-500 mt-1">Terisi otomatis dari akun kamu</p>}
               </div>
               <div>
@@ -393,7 +417,7 @@ function PemesananUser() {
                   onChange={handleChange}
                   required
                   placeholder="08123456789"
-                  className={`${darkInput} ${noHpError ? 'border-red-500/70 focus:ring-red-500/50' : ''}`}
+                  className={`${darkInput} rounded-2xl ${noHpError ? 'border-red-500/70 focus:ring-red-500/50' : ''}`}
                 />
                 {noHpError && (
                   <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
@@ -405,29 +429,143 @@ function PemesananUser() {
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
+                <div className="relative">
                   <label className={darkLabel}>Kamar</label>
-                  <select name="id_kamar" value={form.id_kamar} onChange={handleChange} required
-                    className={darkInput + ' cursor-pointer'}
+                  <div
+                    onClick={() => setIsKamarOpen(!isKamarOpen)}
+                    className={`${darkInput} rounded-2xl cursor-pointer flex items-center justify-between
+                      ${isKamarOpen ? 'ring-2 ring-cyan-500 border-transparent' : ''}`}
                   >
-                    <option value="">-- Pilih Kamar --</option>
-                    {kamar.map(k => (
-                      <option key={k.id} value={k.id}>Kamar {k.nomor} — Rp {Number(k.harga).toLocaleString('id-ID')}</option>
-                    ))}
-                  </select>
+                    <span className={form.id_kamar ? 'text-slate-100' : 'text-slate-500'}>
+                      {form.id_kamar 
+                        ? `Kamar ${kamar.find(k => k.id == form.id_kamar)?.nomor}` 
+                        : '-- Pilih Kamar --'}
+                    </span>
+                    <motion.svg 
+                      animate={{ rotate: isKamarOpen ? 180 : 0 }}
+                      className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </motion.svg>
+                  </div>
+
+                  <AnimatePresence>
+                    {isKamarOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsKamarOpen(false)} />
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          className="absolute z-20 w-full mt-2 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden py-2 max-h-60 overflow-y-auto custom-scrollbar"
+                        >
+                          {kamar.length > 0 ? kamar.map(k => (
+                            <div
+                              key={k.id}
+                              onClick={() => {
+                                handleKamarClick(k.id);
+                                setIsKamarOpen(false);
+                              }}
+                              className={`px-5 py-3 text-sm cursor-pointer transition-colors flex justify-between items-center
+                                ${form.id_kamar == k.id ? 'bg-cyan-500/20 text-cyan-400 font-bold' : 'text-slate-400 hover:bg-slate-800'}`}
+                            >
+                              <span>Kamar {k.nomor}</span>
+                              <span className="text-[10px] opacity-50 font-black tracking-widest text-slate-500">
+                                Rp {Number(k.harga).toLocaleString('id-ID')}
+                              </span>
+                            </div>
+                          )) : (
+                            <div className="px-5 py-3 text-sm text-slate-500 italic text-center">Tidak ada kamar tersedia</div>
+                          )}
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                  <input type="hidden" name="id_kamar" value={form.id_kamar} required />
                 </div>
                 <div>
                   <label className={darkLabel}>Tanggal Masuk</label>
                   <input name="tanggal_masuk" type="date" value={form.tanggal_masuk} onChange={handleChange} required
                     min={new Date().toISOString().split('T')[0]}
-                    className={darkInput}
+                    className={`${darkInput} rounded-2xl`}
                   />
                 </div>
               </div>
+              {/* ─── METODE PEMBAYARAN ─── */}
+              <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 mt-6">
+                <h3 className="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Metode Pembayaran
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                  {['Tunai/Cash', 'Transfer Bank', 'QRIS'].map((m) => (
+                    <div
+                      key={m}
+                      onClick={() => setForm({ ...form, metode_bayar: m })}
+                      className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center gap-2
+                        ${form.metode_bayar === m 
+                          ? 'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/10' 
+                          : 'border-slate-800 bg-slate-800/40 hover:border-slate-700'}`}
+                    >
+                      <div className={`p-2 rounded-xl ${form.metode_bayar === m ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-500'}`}>
+                        {m === 'QRIS' && <svg className="w-5 h-5 font-bold" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h4v4H3V3zm0 14h4v4H3v-4zM17 3h4v4h-4V3zM14 14h3v3h-3v-3zm3-3h4v3h-4v-3zm0 6h4v4h-4v-4zM14 17h3v4h-3v-4zM11 11h3v3h-3v-3zm0 3h3v3h-3v-3zm3-3h3v3h-3v-3zM3 11h4v4h-4v-4zM17 11h4v4h-4v-4z"/></svg>}
+                        {m === 'Transfer Bank' && <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>}
+                        {m === 'Tunai/Cash' && <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                      </div>
+                      <span className={`text-xs font-bold ${form.metode_bayar === m ? 'text-cyan-400' : 'text-slate-500'}`}>{m}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {form.id_kamar && (
+                  <div className="bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm text-slate-400 font-medium">Total Pembayaran</span>
+                      <div className="text-right">
+                        <span className="block text-lg font-black text-cyan-400">
+                          Rp {(Number(kamar.find(k => k.id == form.id_kamar)?.harga || 0) + (form.metode_bayar !== 'Tunai/Cash' ? form.kode_unik : 0)).toLocaleString('id-ID')}
+                        </span>
+                        {form.metode_bayar !== 'Tunai/Cash' && (
+                          <span className="text-[10px] text-indigo-400 font-bold uppercase">Incl. Kode Unik Rp {form.kode_unik}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {form.metode_bayar === 'QRIS' && (
+                      <div className="mt-4 flex flex-col items-center">
+                        <div className="bg-white p-3 rounded-2xl mb-3">
+                          <img src="/images/qris.png" alt="QRIS" className="w-44 h-auto" />
+                        </div>
+                        <p className="text-[10px] text-center text-slate-500">
+                          Scan QRIS dan masukkan nominal sesuai sampai digit terakhir untuk verifikasi.
+                        </p>
+                      </div>
+                    )}
+
+                    {form.metode_bayar === 'Transfer Bank' && (
+                      <div className="mt-4 p-4 bg-cyan-600 rounded-2xl text-white">
+                        <p className="text-xs opacity-80 mb-1">BCA Virtual Account</p>
+                        <p className="text-xl font-black tracking-widest mb-1">123-456-7890</p>
+                        <p className="text-[10px] font-bold opacity-75 uppercase">A/N Kost Async Indonesia</p>
+                      </div>
+                    )}
+
+                    {form.metode_bayar === 'Tunai/Cash' && (
+                      <p className="text-xs text-slate-500 italic mt-2 text-center">
+                        * Pembayaran tunai dilakukan saat check-in di lokasi.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <motion.button
                 {...hoverClick}
                 type="submit" disabled={submitting || !form.id_kamar}
-                className={`w-full mt-2 py-4 ${btnUserPrimary} px-6 shadow-lg shadow-cyan-500/25 text-base disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`w-full mt-6 py-4 ${btnUserPrimary} px-6 shadow-lg shadow-cyan-500/25 text-base disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -507,6 +645,54 @@ function PemesananUser() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="text-sm text-amber-300 font-medium">{cekStatusMsg}</p>
+              </motion.div>
+            )}
+
+            {cekData && cekData.status === 'menunggu_pembayaran' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-5 bg-slate-800 border border-slate-700 rounded-2xl"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Kamar Terpilih</p>
+                    <p className="text-lg font-bold text-slate-100">Kamar {cekData.nomor_kamar}</p>
+                    <p className="text-[10px] text-slate-400">Metode: {cekData.metode_bayar}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500 uppercase font-black tracking-widest">Total Tagihan</p>
+                    <p className="text-xl font-black text-cyan-400">
+                      Rp {(Number(cekData.harga) + Number(cekData.kode_unik)).toLocaleString('id-ID')}
+                    </p>
+                    {cekData.kode_unik > 0 && (
+                      <p className="text-[10px] text-indigo-400 font-bold">Termasuk kode unik Rp {cekData.kode_unik}</p>
+                    )}
+                  </div>
+                </div>
+
+                {cekData.metode_bayar === 'QRIS' && (
+                  <div className="bg-white/5 p-4 rounded-xl flex flex-col items-center">
+                    <div className="bg-white p-2 rounded-lg mb-3">
+                      <img src="/images/qris.png" alt="QRIS" className="w-40 h-auto" />
+                    </div>
+                    <p className="text-[10px] text-slate-400 text-center">Scan QRIS di atas untuk membayar</p>
+                  </div>
+                )}
+
+                {cekData.metode_bayar === 'Transfer Bank' && (
+                  <div className="bg-cyan-600/20 border border-cyan-600/30 p-4 rounded-xl">
+                    <p className="text-xs text-cyan-300 mb-1">BCA Virtual Account</p>
+                    <p className="text-lg font-mono font-black text-white tracking-widest">123-456-7890</p>
+                  </div>
+                )}
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={() => handleSudahBayar(cekData.id)}
+                  className="w-full mt-4 py-3 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-cyan-900/20"
+                >
+                  Konfirmasi Saya Sudah Bayar
+                </motion.button>
               </motion.div>
             )}
           </AnimatePresence>

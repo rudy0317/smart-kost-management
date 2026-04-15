@@ -23,6 +23,7 @@ function DashboardUser() {
 
   // State untuk Pindah Kamar
   const [isModalPindahOpen, setIsModalPindahOpen] = useState(false)
+  const [isModalPengeluaranOpen, setIsModalPengeluaranOpen] = useState(false)
   const [availableRooms, setAvailableRooms] = useState([])
   const [pindahForm, setPindahForm] = useState({ id_kamar: '', alasan: '' })
   const [isKamarOpen, setIsKamarOpen] = useState(false)
@@ -62,6 +63,7 @@ function DashboardUser() {
       const res = await axios.get('http://localhost:5000/api/user-dashboard/pengeluaran', { headers: { Authorization: `Bearer ${token}` } })
       setPengeluaran(res.data)
       setForm({ ...form, keterangan: '', jumlah: '' })
+      setIsModalPengeluaranOpen(false)
     } catch (err) {
       alert('Gagal menyimpan pengeluaran')
     }
@@ -219,77 +221,28 @@ function DashboardUser() {
           )}
 
           {activeTab === 'pengeluaran' && (
-            <motion.div key="pengeluaran" {...fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <motion.div key="pengeluaran" {...fadeInUp} className="space-y-6">
               
-              {/* FORM TAMBAH PENGELUARAN */}
-              <div className={`${darkCard} p-6 lg:col-span-1 h-fit shadow-xl`}>
-                <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                   <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
-                   Catat Pengeluaran
-                </h3>
-                <form onSubmit={handleAddPengeluaran} className="space-y-4">
-                   <div className="relative z-[60]">
-                     <label className={darkLabel}>Kategori</label>
-                     <button
-                       type="button"
-                       onClick={() => setIsKategoriOpen(!isKategoriOpen)}
-                       className={`${darkInput} w-full text-left flex justify-between items-center`}
-                     >
-                       <span>{form.kategori || "Pilih..."}</span>
-                       <span className="text-[10px] opacity-60 ml-2 shrink-0">▼</span>
-                     </button>
-                     <AnimatePresence>
-                       {isKategoriOpen && (
-                         <motion.div
-                           initial={{ opacity: 0, y: -10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           className="absolute top-full mt-2 left-0 right-0 z-[70] bg-slate-800 border border-slate-700 shadow-xl rounded-2xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar"
-                         >
-                           {["Listrik", "Makan", "Laundry", "Galon", "Kebutuhan Mandi", "Lainnya"].map((opt) => (
-                             <button
-                               key={opt}
-                               type="button"
-                               onClick={() => {
-                                 setForm({ ...form, kategori: opt })
-                                 setIsKategoriOpen(false)
-                               }}
-                               className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
-                                 form.kategori === opt ? "bg-cyan-500/20 text-cyan-400 font-bold" : "hover:bg-slate-700 text-slate-300"
-                               }`}
-                             >
-                               {opt}
-                             </button>
-                           ))}
-                         </motion.div>
-                       )}
-                     </AnimatePresence>
-                   </div>
-                   <div>
-                     <label className={darkLabel}>Keterangan</label>
-                     <input placeholder="Cth: Beli token listrik" value={form.keterangan} onChange={(e) => setForm({...form, keterangan: e.target.value})} className={darkInput} required/>
-                   </div>
-                   <div>
-                     <label className={darkLabel}>Jumlah (Rp)</label>
-                     <input type="number" placeholder="50000" value={form.jumlah} onChange={(e) => setForm({...form, jumlah: e.target.value})} className={darkInput} required/>
-                   </div>
-                   <div>
-                     <label className={darkLabel}>Tanggal</label>
-                     <input type="date" value={form.tanggal} onChange={(e) => setForm({...form, tanggal: e.target.value})} className={darkInput} required/>
-                   </div>
-                   <motion.button {...hoverClick} type="submit" className={`w-full py-4 ${btnUserPrimary} mt-2 flex items-center justify-center gap-2`}>
-                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                     Simpan Catatan
-                   </motion.button>
-                </form>
+              {/* HEADER ACTION */}
+              <div className="flex justify-end">
+                <motion.button 
+                  {...hoverClick}
+                  onClick={() => setIsModalPengeluaranOpen(true)}
+                  className={`px-6 py-3 ${btnUserPrimary} flex items-center gap-2 shadow-lg shadow-cyan-500/20`}
+                >
+                  <svg className="w-5 h-5 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Tambah Catatan
+                </motion.button>
               </div>
 
               {/* DAFTAR PENGELUARAN */}
-              <div className={`${darkCard} lg:col-span-2 overflow-hidden flex flex-col`}>
+              <div className={`${darkCard} overflow-hidden flex flex-col`}>
                 <div className="p-6 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/20">
                   <h3 className="text-lg font-bold text-white">Buku Kas Pribadi</h3>
                 </div>
-                <div className="flex-1 overflow-y-auto max-h-[600px] custom-scrollbar">
+                <div className="overflow-x-auto custom-scrollbar">
                   <table className="w-full text-left">
                     <thead className="bg-slate-900 sticky top-0 z-10">
                         <tr>
@@ -435,6 +388,80 @@ function DashboardUser() {
                     <button type="submit" className={`w-full py-4 ${btnUserPrimary} flex justify-center !rounded-xl mt-6`}>
                       Kirim Request
                     </button>
+                  </form>
+               </motion.div>
+            </motion.div>
+          )}
+
+          {/* MODAL TAMBAH PENGELUARAN */}
+          {isModalPengeluaranOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+               <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className={`${darkCard} w-full max-w-md p-6 overflow-hidden relative shadow-2xl border-cyan-500/20`}>
+                  <button type="button" onClick={() => setIsModalPengeluaranOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                  <h3 className="text-xl font-black text-white mb-2 flex items-center gap-2">
+                    <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
+                    Catat Pengeluaran
+                  </h3>
+                  <p className="text-slate-400 text-sm mb-6">Catat pengeluaran harian kamu untuk tracking biaya kost.</p>
+
+                  <form onSubmit={handleAddPengeluaran} className="space-y-4">
+                     <div className="relative z-[61]">
+                       <label className={darkLabel}>Kategori</label>
+                       <button
+                         type="button"
+                         onClick={() => setIsKategoriOpen(!isKategoriOpen)}
+                         className={`${darkInput} w-full text-left flex justify-between items-center`}
+                       >
+                         <span>{form.kategori || "Pilih..."}</span>
+                         <span className="text-[10px] opacity-60 ml-2 shrink-0">▼</span>
+                       </button>
+                       <AnimatePresence>
+                         {isKategoriOpen && (
+                           <motion.div
+                             initial={{ opacity: 0, y: -10 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             exit={{ opacity: 0, y: -10 }}
+                             className="absolute top-full mt-2 left-0 right-0 z-[70] bg-slate-800 border border-slate-700 shadow-xl rounded-2xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar"
+                           >
+                             {["Listrik", "Makan", "Laundry", "Galon", "Kebutuhan Mandi", "Lainnya"].map((opt) => (
+                               <button
+                                 key={opt}
+                                 type="button"
+                                 onClick={() => {
+                                   setForm({ ...form, kategori: opt })
+                                   setIsKategoriOpen(false)
+                                 }}
+                                 className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
+                                   form.kategori === opt ? "bg-cyan-500/20 text-cyan-400 font-bold" : "hover:bg-slate-700 text-slate-300"
+                                 }`}
+                               >
+                                 {opt}
+                               </button>
+                             ))}
+                           </motion.div>
+                         )}
+                       </AnimatePresence>
+                     </div>
+                     <div>
+                       <label className={darkLabel}>Keterangan</label>
+                       <input placeholder="Cth: Beli token listrik" value={form.keterangan} onChange={(e) => setForm({...form, keterangan: e.target.value})} className={darkInput} required/>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className={darkLabel}>Jumlah (Rp)</label>
+                          <input type="number" placeholder="50000" value={form.jumlah} onChange={(e) => setForm({...form, jumlah: e.target.value})} className={darkInput} required/>
+                        </div>
+                        <div>
+                          <label className={darkLabel}>Tanggal</label>
+                          <input type="date" value={form.tanggal} onChange={(e) => setForm({...form, tanggal: e.target.value})} className={darkInput} required/>
+                        </div>
+                     </div>
+                     <motion.button {...hoverClick} type="submit" className={`w-full py-4 ${btnUserPrimary} mt-4 flex items-center justify-center gap-2`}>
+                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                       Simpan Catatan
+                     </motion.button>
                   </form>
                </motion.div>
             </motion.div>

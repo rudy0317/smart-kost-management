@@ -15,6 +15,7 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
     const token = localStorage.getItem("user_token");
     if (!token) return;
 
+    // Fallback: decode from token immediately
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
       setUserData({
@@ -23,6 +24,28 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
         role: "Penyewa"
       });
     } catch {}
+
+    // Real update: fetch latest from dashboard info (contains specific tenant name)
+    fetch("http://localhost:5000/api/user-dashboard/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'active' && data.penyewa) {
+          setUserData({
+            nama: data.penyewa.nama,
+            no_hp: data.penyewa.no_hp || "-",
+            role: "Penyewa"
+          });
+        } else if (data.latest_booking) {
+          setUserData({
+            nama: data.latest_booking.nama,
+            no_hp: data.latest_booking.no_hp || "-",
+            role: "Penyewa"
+          });
+        }
+      })
+      .catch((err) => console.error("Gagal ambil data user:", err));
   }, []);
 
   const displayName = userData?.nama || "Penyewa";
@@ -92,7 +115,6 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
     });
     if (result.isConfirmed) {
       localStorage.removeItem("user_token");
-      localStorage.removeItem("token"); // just in case
       navigate("/");
     }
   };

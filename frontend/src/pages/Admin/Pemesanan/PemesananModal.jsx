@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { X, ChevronDown } from "lucide-react";
 import {
   modalVariants,
   overlayVariants,
@@ -57,20 +58,7 @@ const PemesananModal = ({
                 onClick={onClose}
                 className="text-slate-300 hover:text-slate-500 transition-colors"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X className="h-6 w-6" />
               </button>
             </div>
 
@@ -107,27 +95,29 @@ const PemesananModal = ({
                     className={`${inputStyle} cursor-pointer flex items-center justify-between pr-10`}
                     onClick={() => setIsKamarOpen(!isKamarOpen)}
                   >
-                    {selectedKamar ? (
-                      <>
-                        {selectedKamar.nomor} ({selectedKamar.tipe}) - Rp{" "}
-                        {Number(selectedKamar.harga).toLocaleString("id-ID")}
-                      </>
-                    ) : (
-                      "Pilih Kamar Tersedia"
-                    )}
-                    <svg
-                      className={`w-5 h-5 transition-transform ${isKamarOpen ? "rotate-180" : ""}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <motion.div 
+                      key={form.id_kamar}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex-1 overflow-hidden truncate"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      {selectedKamar ? (
+                        <>
+                          <span className="font-bold text-slate-800">{selectedKamar.nomor}</span>
+                          <span className="mx-2 text-slate-300">|</span>
+                          <span className="text-slate-500">{selectedKamar.tipe}</span>
+                          <span className="mx-2 text-slate-300">|</span>
+                          <span className="text-indigo-600 font-bold">
+                            Rp {Number(selectedKamar.harga).toLocaleString("id-ID")}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-slate-400">Pilih Kamar Tersedia</span>
+                      )}
+                    </motion.div>
+                    <ChevronDown
+                      className={`w-5 h-5 text-slate-400 transition-transform ${isKamarOpen ? "rotate-180" : ""}`}
+                    />
                   </div>
                   <AnimatePresence>
                     {isKamarOpen && (

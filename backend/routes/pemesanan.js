@@ -21,7 +21,7 @@ router.get("/", (req, res) => {
 
 // 2. GUEST KIRIM BOOKING
 router.post("/", (req, res) => {
-  const { nama, no_hp, id_kamar, tanggal_masuk } = req.body;
+  const { nama, no_hp, id_kamar, tanggal_masuk, metode_bayar, kode_unik } = req.body;
   
   // Ekstrak id_user dari token jika ada
   let id_user = null;
@@ -53,8 +53,8 @@ router.post("/", (req, res) => {
         .status(400)
         .json({ pesan: `Kamar ${kamar[0].nomor} sudah terisi!` });
 
-    const sql = `INSERT INTO pemesanan (nama, no_hp, id_kamar, tanggal_masuk, id_user) VALUES (?, ?, ?, ?, ?)`;
-    db.query(sql, [nama, no_hp, id_kamar, tanggal_masuk, id_user], (err) => {
+    const sql = `INSERT INTO pemesanan (nama, no_hp, id_kamar, tanggal_masuk, id_user, metode_bayar, kode_unik) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    db.query(sql, [nama, no_hp, id_kamar, tanggal_masuk, id_user, metode_bayar || 'Tunai/Cash', kode_unik || 0], (err) => {
       if (err) return res.status(500).json({ pesan: "Gagal booking", error: err });
       res
         .status(201)
@@ -158,11 +158,17 @@ router.post("/:id/konfirmasi-bayar", (req, res) => {
           const email = `user_${data.no_hp}@kostasync.com`;
 
           // Cek apakah user dengan no_hp ini sudah pernah dibuat sebelumnya
-          db.query("SELECT id FROM users WHERE no_hp = ?", [data.no_hp], (errCheck, userResults) => {
+          db.query("SELECT id, nama FROM users WHERE no_hp = ?", [data.no_hp], (errCheck, userResults) => {
             if (userResults && userResults.length > 0) {
-              // Akun sudah ada, pakai ID itu (tidak buat ulang, tapi tetap kirim info)
+              const existingUser = userResults[0];
+              // Update nama jika nama di booking berbeda dengan nama di akun lama
+              if (existingUser.nama !== data.nama) {
+                db.query("UPDATE users SET nama = ? WHERE id = ?", [data.nama, existingUser.id]);
+              }
+              
+              // Akun sudah ada, pakai ID itu
               newAccountInfo = { email: `user_${data.no_hp}@kostasync.com`, no_hp: data.no_hp, nama: data.nama };
-              proceedToInsertPenyewa(userResults[0].id);
+              proceedToInsertPenyewa(existingUser.id);
             } else {
               // Benar-benar baru, insert ke table users
               db.query(
@@ -187,6 +193,19 @@ router.post("/:id/konfirmasi-bayar", (req, res) => {
       }
     );
   });
+});
+
+// 3.2 GUEST SINYAL BAYAR (Simulasi Selesai Bayar)
+router.put("/:id/sinyal-bayar", (req, res) => {
+  const { id } = req.params;
+  db.query(
+    "UPDATE pemesanan SET status = 'menunggu_verifikasi' WHERE id = ?",
+    [id],
+    (err) => {
+      if (err) return res.status(500).json({ pesan: "Gagal update status", error: err });
+      res.json({ pesan: "Pemesanan diperbarui, mohon tunggu verifikasi admin." });
+    }
+  );
 });
 
 // 4. AKSI TOLAK

@@ -103,5 +103,14 @@ router.post('/', (req, res) => {
   })
 })
 
+// 7. HAPUS REQUEST PINDAH (OLEH ADMIN)
+router.delete('/:id', (req, res) => {
+  const { id } = req.params
+  db.query('DELETE FROM pindah_kamar WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ message: 'Gagal menghapus request' })
+    res.json({ message: 'Request pindah kamar berhasil dihapus' })
+  })
+})
+
 module.exports = router
 

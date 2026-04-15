@@ -89,7 +89,6 @@ const DaftarPindah = () => {
       setLoading(false);
     }
   };
-
   const handleAction = async (id, action) => {
     const isSetuju = action === 'setuju';
     const konfirmasi = await Swal.fire({
@@ -118,6 +117,34 @@ const DaftarPindah = () => {
         fetchRequests();
       } catch (error) {
         Swal.fire("Gagal!", error.response?.data?.message || "Terjadi kesalahan", "error");
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const konfirmasi = await Swal.fire({
+      title: "Hapus Request?",
+      text: "Data request ini akan dihapus permanen dari riwayat.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#ef4444"
+    });
+
+    if (konfirmasi.isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:5000/api/pindah-kamar/${id}`);
+        Swal.fire({
+          icon: "success",
+          title: "Terhapus!",
+          text: "Request berhasil dihapus.",
+          timer: 1500,
+          showConfirmButton: false
+        });
+        fetchRequests();
+      } catch (error) {
+        Swal.fire("Gagal!", "Gagal menghapus request.", "error");
       }
     }
   };
@@ -214,18 +241,23 @@ const DaftarPindah = () => {
                     </span>
                   </td>
                   <td className="p-4 px-6">
-                    {req.status === 'pending' ? (
                       <div className="flex gap-2">
-                        <button onClick={() => handleAction(req.id, 'setuju')} className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors" title="Setujui">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                        </button>
-                        <button onClick={() => handleAction(req.id, 'tolak')} className="p-2 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg transition-colors" title="Tolak">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        {req.status === 'pending' ? (
+                          <>
+                            <button onClick={() => handleAction(req.id, 'setuju')} className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors" title="Setujui">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            </button>
+                            <button onClick={() => handleAction(req.id, 'tolak')} className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white rounded-lg transition-colors" title="Tolak">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </>
+                        ) : (
+                          <span className="flex items-center px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold uppercase rounded-md italic">Selesai</span>
+                        )}
+                        <button onClick={() => handleDelete(req.id)} className="p-2 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg transition-colors" title="Hapus Permanen">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
-                    ) : (
-                      <span className="text-xs text-slate-400 font-medium italic">Selesai</span>
-                    )}
                   </td>
                 </tr>
               ))}
