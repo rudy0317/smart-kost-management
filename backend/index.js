@@ -11,6 +11,7 @@ const laporanRoutes = require('./routes/laporan')
 const pemesananRoutes = require('./routes/pemesanan')
 const usersRoutes = require('./routes/users')
 const userDashboardRoutes = require('./routes/userDashboard')
+const PORT = process.env.PORT || 5000;
 require('dotenv').config()
 
 const app = express()
@@ -28,7 +29,7 @@ app.use('/api/laporan', laporanRoutes)
 app.use('/api/users', usersRoutes)
 app.use('/api/user-dashboard', userDashboardRoutes)
 
-app.listen(5000, () => {
-  console.log('Server running di port 5000')
+app.listen(PORT, () => {
+  console.log(`Server running di port ${PORT}`)
 })
-
+
