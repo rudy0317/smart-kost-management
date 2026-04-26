@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../api'
 import Sidebar from "../../components/Sidebar"
 import { toast } from 'react-toastify'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -26,7 +26,7 @@ function Laporan() {
 
   const fetchTahun = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/laporan/list-tahun')
+      const res = await api.get('http://localhost:5000/api/laporan/list-tahun')
       setTahunList(res.data)
     } catch {
       setTahunList([new Date().getFullYear().toString()])
@@ -35,7 +35,7 @@ function Laporan() {
 
   const fetchLaporan = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/laporan?bulan=${tahunPilih}-${bulanPilih}`)
+      const res = await api.get(`http://localhost:5000/api/laporan?bulan=${tahunPilih}-${bulanPilih}`)
       setData(res.data)
     } catch {
       toast.error("Gagal memuat laporan keuangan.")

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import api from '../../api'
 
 function PemesananPublik() {
   const navigate = useNavigate()
@@ -21,7 +21,7 @@ function PemesananPublik() {
   const [credInfo, setCredInfo] = useState(null)
 
   const fetchKamar = async () => {
-    const res = await axios.get('http://localhost:5000/api/kamar')
+    const res = await api.get('http://localhost:5000/api/kamar')
     setKamar(res.data.filter(k => k.status === 'kosong'))
   }
 
@@ -44,11 +44,11 @@ function PemesananPublik() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await axios.post('http://localhost:5000/api/pemesanan', form)
+      await api.post('http://localhost:5000/api/pemesanan', form)
       setSukses(true)
-      setForm({ 
-        nama: '', no_hp: '', id_kamar: '', tanggal_masuk: '', 
-        metode_bayar: 'Tunai/Cash', kode_unik: 0 
+      setForm({
+        nama: '', no_hp: '', id_kamar: '', tanggal_masuk: '',
+        metode_bayar: 'Tunai/Cash', kode_unik: 0
       })
       setTimeout(() => setSukses(false), 8000)
     } catch (err) {
@@ -62,7 +62,7 @@ function PemesananPublik() {
     setCekError('')
     setIsCekLoading(true)
     try {
-      const res = await axios.get('http://localhost:5000/api/pemesanan')
+      const res = await api.get('http://localhost:5000/api/pemesanan')
       const semuaPemesanan = res.data
 
       const myBooking = semuaPemesanan.find(p => p.no_hp === noHpCek.trim())
@@ -243,7 +243,7 @@ function PemesananPublik() {
                       Kamar {k.nomor}
                       <AnimatePresence>
                         {form.id_kamar === k.id && (
-                          <motion.span 
+                          <motion.span
                             initial={{ opacity: 0, scale: 0.5 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5 }}
@@ -298,11 +298,11 @@ function PemesananPublik() {
                       ${isKamarOpen ? 'bg-white ring-2 ring-indigo-500 border-transparent' : 'hover:border-gray-300'}`}
                   >
                     <span className={`text-sm ${form.id_kamar ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>
-                      {form.id_kamar 
-                        ? `Kamar ${kamar.find(k => k.id === form.id_kamar)?.nomor}` 
+                      {form.id_kamar
+                        ? `Kamar ${kamar.find(k => k.id === form.id_kamar)?.nomor}`
                         : '-- Pilih Kamar --'}
                     </span>
-                    <motion.svg 
+                    <motion.svg
                       animate={{ rotate: isKamarOpen ? 180 : 0 }}
                       className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                     >
@@ -369,8 +369,8 @@ function PemesananPublik() {
                       key={m}
                       onClick={() => setForm({ ...form, metode_bayar: m })}
                       className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center gap-2
-                        ${form.metode_bayar === m 
-                          ? 'border-indigo-600 bg-indigo-50/50 shadow-indigo-100 shadow-lg' 
+                        ${form.metode_bayar === m
+                          ? 'border-indigo-600 bg-indigo-50/50 shadow-indigo-100 shadow-lg'
                           : 'border-gray-50 bg-gray-50 hover:border-gray-200'}`}
                     >
                       <div className={`p-2 rounded-xl ${form.metode_bayar === m ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400'}`}>

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../api'
 import { getKamarImage } from '../../utils/imageHelper'
 import kamarDefaultImg from '../../assets/kamar_default.png'
 import { btnUserPrimary, textUserAccent, cardUser } from '../../utils/themeUser'
@@ -14,7 +14,7 @@ function LandingPage() {
   useEffect(() => {
     // Ambil data kamar buat ditampilin di katalog
     const fetchKamar = async () => {
-      const res = await axios.get('http://localhost:5000/api/kamar')
+      const res = await api.get('http://localhost:5000/api/kamar')
       setKamar(res.data.filter(k => k.status === 'kosong'))
     }
     fetchKamar()
@@ -42,7 +42,7 @@ function LandingPage() {
             </a>
             <motion.button
               {...hoverClick}
-              onClick={() => navigate('/pesan')} 
+              onClick={() => navigate('/pesan')}
               className={`px-8 py-4 ${btnUserPrimary} rounded-full shadow-lg shadow-cyan-500/20`}
             >
               Pesan Sekarang
@@ -86,7 +86,7 @@ function LandingPage() {
                   </p>
                    <motion.button
                     {...hoverClick}
-                    onClick={() => navigate('/pesan')} 
+                    onClick={() => navigate('/pesan')}
                     className={`w-full py-3 ${btnUserPrimary} text-sm`}
                   >
                     Booking Sekarang

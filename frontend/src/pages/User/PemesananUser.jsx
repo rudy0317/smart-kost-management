@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import api from '../../api'
 import { fadeInUp, hoverClick, staggerContainer } from '../../utils/animations'
 import { btnPrimary, inputStyle, labelStyle } from '../../utils/theme'
 import { inputUser, labelUser, btnUserPrimary, textUserAccent, cardUser } from '../../utils/themeUser'
@@ -48,7 +48,7 @@ function PemesananUser() {
         setForm(prev => ({ ...prev, nama: decoded.nama || '', no_hp: decoded.no_hp || '' }))
       }
     }
-    axios.get('http://localhost:5000/api/kamar')
+    api.get('http://localhost:5000/api/kamar')
       .then(res => { setKamar(res.data.filter(k => k.status === 'kosong')); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
@@ -84,11 +84,11 @@ function PemesananUser() {
     try {
       const token = localStorage.getItem('user_token')
       const headers = token && token !== "null" ? { Authorization: `Bearer ${token}` } : {}
-      await axios.post('http://localhost:5000/api/pemesanan', form, { headers })
+      await api.post('http://localhost:5000/api/pemesanan', form, { headers })
       setSukses(true)
-      setForm(prev => ({ 
-        ...prev, 
-        id_kamar: '', 
+      setForm(prev => ({
+        ...prev,
+        id_kamar: '',
         tanggal_masuk: '',
         metode_bayar: 'Tunai/Cash',
         kode_unik: 0
@@ -108,7 +108,7 @@ function PemesananUser() {
     setCekError(''); setCekStatusMsg('')
     setIsCekLoading(true)
     try {
-      const res = await axios.get('http://localhost:5000/api/pemesanan')
+      const res = await api.get('http://localhost:5000/api/pemesanan')
       const myBooking = res.data.find(p => p.no_hp === noHpCek.trim())
 
       if (!myBooking) {
@@ -144,7 +144,7 @@ function PemesananUser() {
 
   const handleSudahBayar = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`)
+      await api.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`)
       setCekStatusMsg('Pembayaran sedang diverifikasi admin. Mohon tunggu sebentar.')
       setCekData(prev => ({ ...prev, status: 'menunggu_verifikasi' }))
     } catch (err) {
@@ -437,11 +437,11 @@ function PemesananUser() {
                       ${isKamarOpen ? 'ring-2 ring-cyan-500 border-transparent' : ''}`}
                   >
                     <span className={form.id_kamar ? 'text-slate-100' : 'text-slate-500'}>
-                      {form.id_kamar 
-                        ? `Kamar ${kamar.find(k => k.id == form.id_kamar)?.nomor}` 
+                      {form.id_kamar
+                        ? `Kamar ${kamar.find(k => k.id == form.id_kamar)?.nomor}`
                         : '-- Pilih Kamar --'}
                     </span>
-                    <motion.svg 
+                    <motion.svg
                       animate={{ rotate: isKamarOpen ? 180 : 0 }}
                       className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                     >
@@ -506,8 +506,8 @@ function PemesananUser() {
                       key={m}
                       onClick={() => setForm({ ...form, metode_bayar: m })}
                       className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center gap-2
-                        ${form.metode_bayar === m 
-                          ? 'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/10' 
+                        ${form.metode_bayar === m
+                          ? 'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/10'
                           : 'border-slate-800 bg-slate-800/40 hover:border-slate-700'}`}
                     >
                       <div className={`p-2 rounded-xl ${form.metode_bayar === m ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-500'}`}>

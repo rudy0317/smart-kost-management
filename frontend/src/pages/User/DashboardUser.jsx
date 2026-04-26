@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import api from '../../api'
 import { fadeInUp, hoverClick, staggerContainer } from '../../utils/animations'
 import { btnPrimary, inputStyle, labelStyle, cardStyle, thStyle } from '../../utils/theme'
-import { 
-  cardUser, inputUser, labelUser, btnUserPrimary, thUser, badgeUser, textUserAccent, trUser 
+import {
+  cardUser, inputUser, labelUser, btnUserPrimary, thUser, badgeUser, textUserAccent, trUser
 } from '../../utils/themeUser'
 import Swal from 'sweetalert2'
 import SidebarUser from '../../components/SidebarUser'
@@ -15,7 +15,7 @@ function DashboardUser() {
   const [activeTab, setActiveTab] = useState('overview') // overview | pengeluaran | history
   const [data, setData] = useState({ status: 'loading', penyewa: null, histori_pembayaran: [], latest_booking: null })
   const [pengeluaran, setPengeluaran] = useState([])
-  
+
   // State form pengeluaran
   const [form, setForm] = useState({ kategori: 'Listrik', keterangan: '', jumlah: '', tanggal: new Date().toISOString().split('T')[0] })
   const [isKategoriOpen, setIsKategoriOpen] = useState(false)
@@ -35,8 +35,8 @@ function DashboardUser() {
     const config = { headers: { Authorization: `Bearer ${token}` } }
 
     Promise.all([
-      axios.get('http://localhost:5000/api/user-dashboard/me', config),
-      axios.get('http://localhost:5000/api/user-dashboard/pengeluaran', config)
+      api.get('http://localhost:5000/api/user-dashboard/me', config),
+      api.get('http://localhost:5000/api/user-dashboard/pengeluaran', config)
     ])
     .then(([resMe, resPengeluaran]) => {
       setData(resMe.data)
@@ -56,11 +56,11 @@ function DashboardUser() {
     e.preventDefault()
     const token = localStorage.getItem('user_token')
     try {
-      await axios.post('http://localhost:5000/api/user-dashboard/pengeluaran', form, {
+      await api.post('http://localhost:5000/api/user-dashboard/pengeluaran', form, {
         headers: { Authorization: `Bearer ${token}` }
       })
       // Refresh pengeluaran
-      const res = await axios.get('http://localhost:5000/api/user-dashboard/pengeluaran', { headers: { Authorization: `Bearer ${token}` } })
+      const res = await api.get('http://localhost:5000/api/user-dashboard/pengeluaran', { headers: { Authorization: `Bearer ${token}` } })
       setPengeluaran(res.data)
       setForm({ ...form, keterangan: '', jumlah: '' })
       setIsModalPengeluaranOpen(false)
@@ -73,7 +73,7 @@ function DashboardUser() {
     if (!window.confirm('Hapus catatan ini?')) return
     const token = localStorage.getItem('user_token')
     try {
-      await axios.delete(`http://localhost:5000/api/user-dashboard/pengeluaran/${id}`, {
+      await api.delete(`http://localhost:5000/api/user-dashboard/pengeluaran/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setPengeluaran(pengeluaran.filter(p => p.id !== id))
@@ -85,7 +85,7 @@ function DashboardUser() {
   const handleOpenPindahModal = async () => {
     try {
       const token = localStorage.getItem('user_token')
-      const res = await axios.get('http://localhost:5000/api/user-dashboard/available-rooms', {
+      const res = await api.get('http://localhost:5000/api/user-dashboard/available-rooms', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setAvailableRooms(res.data)
@@ -100,13 +100,13 @@ function DashboardUser() {
     if(!pindahForm.id_kamar) return alert('Pilih kamar terlebih dahulu!')
     try {
       const token = localStorage.getItem('user_token')
-      await axios.post('http://localhost:5000/api/user-dashboard/request-move', pindahForm, {
+      await api.post('http://localhost:5000/api/user-dashboard/request-move', pindahForm, {
         headers: { Authorization: `Bearer ${token}` }
       })
       Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Request pindah kamar dikirim!', background: '#1e293b', color: '#fff' })
       setIsModalPindahOpen(false)
       // refresh data
-      const resMe = await axios.get('http://localhost:5000/api/user-dashboard/me', { headers: { Authorization: `Bearer ${token}` } })
+      const resMe = await api.get('http://localhost:5000/api/user-dashboard/me', { headers: { Authorization: `Bearer ${token}` } })
       setData(resMe.data)
     } catch (err) {
       alert(err.response?.data?.message || 'Gagal mengirim request')
@@ -128,7 +128,7 @@ function DashboardUser() {
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
       <SidebarUser activeTab={activeTab} setActiveTab={setActiveTab} status={data.status} />
-      
+
       <main className="flex-1 max-h-screen overflow-y-auto custom-scrollbar p-6 sm:p-10 relative">
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
@@ -142,7 +142,7 @@ function DashboardUser() {
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" {...fadeInUp} className="space-y-6">
-              
+
               {/* STATUS KAMAR */}
               <div className={`${darkCard} p-6 sm:p-8 flex items-center justify-between flex-wrap gap-4`}>
                  <div>
@@ -160,7 +160,7 @@ function DashboardUser() {
                             <svg className="w-5 h-5 text-amber-500 animate-pulse ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             onClick={handleOpenPindahModal}
                             className="mt-4 px-5 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2 group"
                           >
@@ -222,10 +222,10 @@ function DashboardUser() {
 
           {activeTab === 'pengeluaran' && (
             <motion.div key="pengeluaran" {...fadeInUp} className="space-y-6">
-              
+
               {/* HEADER ACTION */}
               <div className="flex justify-end">
-                <motion.button 
+                <motion.button
                   {...hoverClick}
                   onClick={() => setIsModalPengeluaranOpen(true)}
                   className={`px-6 py-3 ${btnUserPrimary} flex items-center gap-2 shadow-lg shadow-cyan-500/20`}

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import api from '../../api'
 import { fadeInUp, hoverClick, staggerContainer } from '../../utils/animations'
 import { btnPrimary, cardStyle } from '../../utils/theme'
-import { 
-  btnUserPrimary, cardUser, textUserAccent, inputUser 
+import {
+  btnUserPrimary, cardUser, textUserAccent, inputUser
 } from '../../utils/themeUser'
 import { getKamarImage } from '../../utils/imageHelper'
 import kamarDefaultImg from '../../assets/kamar_default.png'
@@ -21,7 +21,7 @@ function KatalogGuest() {
   const isUserLoggedIn = !!localStorage.getItem('user_token')
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/kamar')
+    api.get('http://localhost:5000/api/kamar')
       .then(res => { setKamar(res.data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])

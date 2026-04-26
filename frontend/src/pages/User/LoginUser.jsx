@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import api from '../../api'
 import { Eye, EyeOff } from 'lucide-react'
 import { fadeInUp, hoverClick, modalVariants } from '../../utils/animations'
 import { inputStyle, labelStyle, btnPrimary } from '../../utils/theme'
@@ -36,7 +36,7 @@ function LoginUser() {
     e.preventDefault()
     setLoading(true); setError('')
     try {
-      const res = await axios.post('http://localhost:5000/api/users/login', loginForm)
+      const res = await api.post('http://localhost:5000/api/users/login', loginForm)
       localStorage.setItem('user_token', res.data.token)
       navigate('/dashboard-user', { replace: true })
     } catch (err) {
@@ -66,7 +66,7 @@ function LoginUser() {
     }
     setLoading(true)
     try {
-      const res = await axios.post('http://localhost:5000/api/users/register', {
+      const res = await api.post('http://localhost:5000/api/users/register', {
         nama: registerForm.nama,
         email: registerForm.email,
         no_hp: registerForm.no_hp,
