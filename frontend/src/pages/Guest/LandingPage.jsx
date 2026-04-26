@@ -14,7 +14,7 @@ function LandingPage() {
   useEffect(() => {
     // Ambil data kamar buat ditampilin di katalog
     const fetchKamar = async () => {
-      const res = await api.get('http://localhost:5000/api/kamar')
+      const res = await api.get('/api/kamar')
       setKamar(res.data.filter(k => k.status === 'kosong'))
     }
     fetchKamar()

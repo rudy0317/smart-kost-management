@@ -9,7 +9,7 @@ export const usePengeluaran = () => {
   const fetchPengeluaran = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get("http://localhost:5000/api/pengeluaran");
+      const res = await api.get("/api/pengeluaran");
       setPengeluaran(res.data);
     } catch (error) {
       console.error("Gagal mengambil data pengeluaran", error);
@@ -23,12 +23,12 @@ export const usePengeluaran = () => {
     try {
       if (editId) {
         await api.put(
-          `http://localhost:5000/api/pengeluaran/${editId}`,
+          `/api/pengeluaran/${editId}`,
           formData,
         );
         toast.success("Data pengeluaran berhasil diperbarui.");
       } else {
-        await api.post("http://localhost:5000/api/pengeluaran", formData);
+        await api.post("/api/pengeluaran", formData);
         toast.success("Data pengeluaran baru berhasil ditambahkan.");
       }
       await fetchPengeluaran();
@@ -43,7 +43,7 @@ export const usePengeluaran = () => {
   // Tambahin fungsi ini di dalam hook usePengeluaran lu:
 const deletePengeluaran = async (id) => {
   try {
-    await api.delete(`http://localhost:5000/api/pengeluaran/${id}`); // Sesuaikan URL API lu
+    await api.delete(`/api/pengeluaran/${id}`); // Sesuaikan URL API lu
     setPengeluaran(pengeluaran.filter((item) => item.id !== id));
     toast.success("Data pengeluaran berhasil dihapus!");
   } catch (error) {

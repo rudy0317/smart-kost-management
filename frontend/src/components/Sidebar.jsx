@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
+import api from "../api";
 
 function Sidebar() {
   const location = useLocation();
@@ -13,12 +14,11 @@ function Sidebar() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch("http://localhost:5000/api/auth/me", {
+    api.get("/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.id) setAdminData(data);
+      .then((res) => {
+        if (res.data.id) setAdminData(res.data);
       })
       .catch(() => {
         // fallback: decode dari token langsung

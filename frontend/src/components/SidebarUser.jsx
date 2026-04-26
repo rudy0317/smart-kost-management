@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { btnUserPrimary, textUserAccent } from "../utils/themeUser";
+import api from "../api";
 
 function SidebarUser({ activeTab, setActiveTab, status }) {
   const location = useLocation();
@@ -26,11 +27,11 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
     } catch {}
 
     // Real update: fetch latest from dashboard info (contains specific tenant name)
-    fetch("http://localhost:5000/api/user-dashboard/me", {
+    api.get("/api/user-dashboard/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => {
+        const data = res.data;
         if (data.status === 'active' && data.penyewa) {
           setUserData({
             nama: data.penyewa.nama,

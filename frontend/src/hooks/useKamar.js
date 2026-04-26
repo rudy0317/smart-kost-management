@@ -11,7 +11,7 @@ export const useKamar = () => {
   const fetchKamar = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get("http://localhost:5000/api/kamar");
+      const res = await api.get("/api/kamar");
       setKamar(res.data);
     } catch (error) {
       console.error("Gagal ambil data", error);
@@ -25,10 +25,10 @@ export const useKamar = () => {
   const saveKamar = async (formData, editId) => {
     try {
       if (editId) {
-        await api.put(`http://localhost:5000/api/kamar/${editId}`, formData);
+        await api.put(`/api/kamar/${editId}`, formData);
         toast.success("Unit berhasil diperbarui!");
       } else {
-        await api.post("http://localhost:5000/api/kamar", formData);
+        await api.post("/api/kamar", formData);
         toast.success("Unit baru ditambahkan!");
       }
       await fetchKamar();
@@ -55,7 +55,7 @@ export const useKamar = () => {
 
     if (result.isConfirmed) {
       try {
-        await api.delete(`http://localhost:5000/api/kamar/${id}`);
+        await api.delete(`/api/kamar/${id}`);
         toast.success("Kamar dihapus.");
         await fetchKamar();
       } catch (error) {

@@ -38,8 +38,8 @@ const DaftarPindah = () => {
   const fetchFormOptions = async () => {
     try {
       const [tenantsRes, roomsRes] = await Promise.all([
-        api.get("http://localhost:5000/api/pindah-kamar/active-tenants"),
-        api.get("http://localhost:5000/api/pindah-kamar/available-rooms")
+        api.get("/api/pindah-kamar/active-tenants"),
+        api.get("/api/pindah-kamar/available-rooms")
       ]);
       setTenants(tenantsRes.data);
       setRooms(roomsRes.data);
@@ -64,7 +64,7 @@ const DaftarPindah = () => {
     }
 
     try {
-      await api.post("http://localhost:5000/api/pindah-kamar", formData);
+      await api.post("/api/pindah-kamar", formData);
       Swal.fire({
         icon: "success",
         title: "Berhasil",
@@ -81,7 +81,7 @@ const DaftarPindah = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await api.get("http://localhost:5000/api/pindah-kamar");
+      const response = await api.get("/api/pindah-kamar");
       setRequests(response.data);
     } catch (error) {
       console.error("Error fetching requests:", error);
@@ -105,7 +105,7 @@ const DaftarPindah = () => {
 
     if (konfirmasi.isConfirmed) {
       try {
-        await api.post(`http://localhost:5000/api/pindah-kamar/${id}/${action}`);
+        await api.post(`/api/pindah-kamar/${id}/${action}`);
         const Toast = Swal.mixin({
           toast: true,
           position: "top-end",
@@ -134,7 +134,7 @@ const DaftarPindah = () => {
 
     if (konfirmasi.isConfirmed) {
       try {
-        await api.delete(`http://localhost:5000/api/pindah-kamar/${id}`);
+        await api.delete(`/api/pindah-kamar/${id}`);
         Swal.fire({
           icon: "success",
           title: "Terhapus!",

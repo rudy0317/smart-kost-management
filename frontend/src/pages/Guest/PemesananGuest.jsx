@@ -21,7 +21,7 @@ function PemesananPublik() {
   const [credInfo, setCredInfo] = useState(null)
 
   const fetchKamar = async () => {
-    const res = await api.get('http://localhost:5000/api/kamar')
+    const res = await api.get('/api/kamar')
     setKamar(res.data.filter(k => k.status === 'kosong'))
   }
 
@@ -44,7 +44,7 @@ function PemesananPublik() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await api.post('http://localhost:5000/api/pemesanan', form)
+      await api.post('/api/pemesanan', form)
       setSukses(true)
       setForm({
         nama: '', no_hp: '', id_kamar: '', tanggal_masuk: '',
@@ -62,7 +62,7 @@ function PemesananPublik() {
     setCekError('')
     setIsCekLoading(true)
     try {
-      const res = await api.get('http://localhost:5000/api/pemesanan')
+      const res = await api.get('/api/pemesanan')
       const semuaPemesanan = res.data
 
       const myBooking = semuaPemesanan.find(p => p.no_hp === noHpCek.trim())

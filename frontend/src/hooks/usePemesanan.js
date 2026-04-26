@@ -11,7 +11,7 @@ export const usePemesanan = () => {
   const fetchPemesanan = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get("http://localhost:5000/api/pemesanan");
+      const res = await api.get("/api/pemesanan");
       setPemesanan(res.data);
     } catch (err) {
       toast.error("Gagal sinkronisasi data pemesanan.");
@@ -22,7 +22,7 @@ export const usePemesanan = () => {
 
   const fetchKosongKamar = useCallback(async () => {
     try {
-      const res = await api.get("http://localhost:5000/api/kamar");
+      const res = await api.get("/api/kamar");
       setKosongKamar(
         res.data.filter(
           (k) =>
@@ -37,7 +37,7 @@ export const usePemesanan = () => {
 
   const savePemesanan = async (formData) => {
     try {
-      await api.post("http://localhost:5000/api/pemesanan", formData);
+      await api.post("/api/pemesanan", formData);
       toast.success("Pemesanan baru ditambahkan!");
       await fetchPemesanan();
       await fetchKosongKamar();
@@ -51,10 +51,10 @@ export const usePemesanan = () => {
   const updateStatus = async (id, status) => {
     try {
       if (status === "menunggu_pembayaran") {
-        await api.post(`http://localhost:5000/api/pemesanan/${id}/setuju`);
+        await api.post(`/api/pemesanan/${id}/setuju`);
         toast.success("Pemesanan disetujui! Menunggu pembayaran.");
       } else if (status === "ditolak") {
-        await api.put(`http://localhost:5000/api/pemesanan/${id}/tolak`);
+        await api.put(`/api/pemesanan/${id}/tolak`);
         toast.success("Pemesanan ditolak.");
       }
       await fetchPemesanan();
@@ -68,7 +68,7 @@ export const usePemesanan = () => {
 
   const sinyalBayar = async (id) => {
     try {
-      await api.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`);
+      await api.put(`/api/pemesanan/${id}/sinyal-bayar`);
       toast.success("Konfirmasi pembayaran terkirim! Admin akan segera memverifikasi.");
       await fetchPemesanan();
       return true;
@@ -80,7 +80,7 @@ export const usePemesanan = () => {
 
   const konfirmasiBayar = async (id, metode_bayar) => {
     try {
-      const res = await api.post(`http://localhost:5000/api/pemesanan/${id}/konfirmasi-bayar`, { metode_bayar });
+      const res = await api.post(`/api/pemesanan/${id}/konfirmasi-bayar`, { metode_bayar });
 
       await fetchPemesanan();
       await fetchKosongKamar();
@@ -158,7 +158,7 @@ export const usePemesanan = () => {
 
     if (result.isConfirmed) {
       try {
-        await api.delete(`http://localhost:5000/api/pemesanan/${id}`);
+        await api.delete(`/api/pemesanan/${id}`);
         toast.success("Pemesanan dihapus.");
         await fetchPemesanan();
       } catch (err) {

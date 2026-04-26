@@ -36,7 +36,7 @@ function LoginUser() {
     e.preventDefault()
     setLoading(true); setError('')
     try {
-      const res = await api.post('http://localhost:5000/api/users/login', loginForm)
+      const res = await api.post('/api/users/login', loginForm)
       localStorage.setItem('user_token', res.data.token)
       navigate('/dashboard-user', { replace: true })
     } catch (err) {
@@ -66,7 +66,7 @@ function LoginUser() {
     }
     setLoading(true)
     try {
-      const res = await api.post('http://localhost:5000/api/users/register', {
+      const res = await api.post('/api/users/register', {
         nama: registerForm.nama,
         email: registerForm.email,
         no_hp: registerForm.no_hp,

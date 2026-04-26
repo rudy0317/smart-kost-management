@@ -48,7 +48,7 @@ function PemesananUser() {
         setForm(prev => ({ ...prev, nama: decoded.nama || '', no_hp: decoded.no_hp || '' }))
       }
     }
-    api.get('http://localhost:5000/api/kamar')
+    api.get('/api/kamar')
       .then(res => { setKamar(res.data.filter(k => k.status === 'kosong')); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
@@ -84,7 +84,7 @@ function PemesananUser() {
     try {
       const token = localStorage.getItem('user_token')
       const headers = token && token !== "null" ? { Authorization: `Bearer ${token}` } : {}
-      await api.post('http://localhost:5000/api/pemesanan', form, { headers })
+      await api.post('/api/pemesanan', form, { headers })
       setSukses(true)
       setForm(prev => ({
         ...prev,
@@ -108,7 +108,7 @@ function PemesananUser() {
     setCekError(''); setCekStatusMsg('')
     setIsCekLoading(true)
     try {
-      const res = await api.get('http://localhost:5000/api/pemesanan')
+      const res = await api.get('/api/pemesanan')
       const myBooking = res.data.find(p => p.no_hp === noHpCek.trim())
 
       if (!myBooking) {
@@ -144,7 +144,7 @@ function PemesananUser() {
 
   const handleSudahBayar = async (id) => {
     try {
-      await api.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`)
+      await api.put(`/api/pemesanan/${id}/sinyal-bayar`)
       setCekStatusMsg('Pembayaran sedang diverifikasi admin. Mohon tunggu sebentar.')
       setCekData(prev => ({ ...prev, status: 'menunggu_verifikasi' }))
     } catch (err) {

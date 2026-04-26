@@ -35,8 +35,8 @@ function DashboardUser() {
     const config = { headers: { Authorization: `Bearer ${token}` } }
 
     Promise.all([
-      api.get('http://localhost:5000/api/user-dashboard/me', config),
-      api.get('http://localhost:5000/api/user-dashboard/pengeluaran', config)
+      api.get('/api/user-dashboard/me', config),
+      api.get('/api/user-dashboard/pengeluaran', config)
     ])
     .then(([resMe, resPengeluaran]) => {
       setData(resMe.data)
@@ -56,11 +56,11 @@ function DashboardUser() {
     e.preventDefault()
     const token = localStorage.getItem('user_token')
     try {
-      await api.post('http://localhost:5000/api/user-dashboard/pengeluaran', form, {
+      await api.post('/api/user-dashboard/pengeluaran', form, {
         headers: { Authorization: `Bearer ${token}` }
       })
       // Refresh pengeluaran
-      const res = await api.get('http://localhost:5000/api/user-dashboard/pengeluaran', { headers: { Authorization: `Bearer ${token}` } })
+      const res = await api.get('/api/user-dashboard/pengeluaran', { headers: { Authorization: `Bearer ${token}` } })
       setPengeluaran(res.data)
       setForm({ ...form, keterangan: '', jumlah: '' })
       setIsModalPengeluaranOpen(false)
@@ -73,7 +73,7 @@ function DashboardUser() {
     if (!window.confirm('Hapus catatan ini?')) return
     const token = localStorage.getItem('user_token')
     try {
-      await api.delete(`http://localhost:5000/api/user-dashboard/pengeluaran/${id}`, {
+      await api.delete(`/api/user-dashboard/pengeluaran/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setPengeluaran(pengeluaran.filter(p => p.id !== id))
@@ -85,7 +85,7 @@ function DashboardUser() {
   const handleOpenPindahModal = async () => {
     try {
       const token = localStorage.getItem('user_token')
-      const res = await api.get('http://localhost:5000/api/user-dashboard/available-rooms', {
+      const res = await api.get('/api/user-dashboard/available-rooms', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setAvailableRooms(res.data)
@@ -100,13 +100,13 @@ function DashboardUser() {
     if(!pindahForm.id_kamar) return alert('Pilih kamar terlebih dahulu!')
     try {
       const token = localStorage.getItem('user_token')
-      await api.post('http://localhost:5000/api/user-dashboard/request-move', pindahForm, {
+      await api.post('/api/user-dashboard/request-move', pindahForm, {
         headers: { Authorization: `Bearer ${token}` }
       })
       Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Request pindah kamar dikirim!', background: '#1e293b', color: '#fff' })
       setIsModalPindahOpen(false)
       // refresh data
-      const resMe = await api.get('http://localhost:5000/api/user-dashboard/me', { headers: { Authorization: `Bearer ${token}` } })
+      const resMe = await api.get('/api/user-dashboard/me', { headers: { Authorization: `Bearer ${token}` } })
       setData(resMe.data)
     } catch (err) {
       alert(err.response?.data?.message || 'Gagal mengirim request')

@@ -52,7 +52,7 @@ function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get("http://localhost:5000/api/dashboard");
+      const res = await api.get("/api/dashboard");
       setData(res.data);
     } catch {
       setError("Gagal memuat data dashboard. Pastikan server berjalan.");

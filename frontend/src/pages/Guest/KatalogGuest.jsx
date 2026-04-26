@@ -21,7 +21,7 @@ function KatalogGuest() {
   const isUserLoggedIn = !!localStorage.getItem('user_token')
 
   useEffect(() => {
-    api.get('http://localhost:5000/api/kamar')
+    api.get('/api/kamar')
       .then(res => { setKamar(res.data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])

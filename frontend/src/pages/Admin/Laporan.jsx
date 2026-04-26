@@ -26,7 +26,7 @@ function Laporan() {
 
   const fetchTahun = async () => {
     try {
-      const res = await api.get('http://localhost:5000/api/laporan/list-tahun')
+      const res = await api.get('/api/laporan/list-tahun')
       setTahunList(res.data)
     } catch {
       setTahunList([new Date().getFullYear().toString()])
@@ -35,7 +35,7 @@ function Laporan() {
 
   const fetchLaporan = async () => {
     try {
-      const res = await api.get(`http://localhost:5000/api/laporan?bulan=${tahunPilih}-${bulanPilih}`)
+      const res = await api.get(`/api/laporan?bulan=${tahunPilih}-${bulanPilih}`)
       setData(res.data)
     } catch {
       toast.error("Gagal memuat laporan keuangan.")

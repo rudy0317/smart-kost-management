@@ -11,7 +11,7 @@ export const usePembayaran = () => {
   const fetchPembayaran = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get("http://localhost:5000/api/pembayaran");
+      const res = await api.get("/api/pembayaran");
       setPembayaran(res.data);
     } catch (error) {
       console.error("Gagal mengambil data pembayaran", error);
@@ -23,7 +23,7 @@ export const usePembayaran = () => {
   const fetchPenyewa = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get("http://localhost:5000/api/penyewa");
+      const res = await api.get("/api/penyewa");
       setPenyewa(res.data);
     } catch (error) {
       console.error("Gagal mengambil data penyewa", error);
@@ -36,12 +36,12 @@ export const usePembayaran = () => {
     try {
       if (editId) {
         await api.put(
-          `http://localhost:5000/api/pembayaran/${editId}`,
+          `/api/pembayaran/${editId}`,
           formData,
         );
         toast.success("Data pembayaran berhasil diperbarui.");
       } else {
-        await api.post("http://localhost:5000/api/pembayaran", formData);
+        await api.post("/api/pembayaran", formData);
         toast.success("Pembayaran baru berhasil dicatat.");
       }
       await fetchPembayaran();
@@ -67,7 +67,7 @@ export const usePembayaran = () => {
 
     if (result.isConfirmed) {
       try {
-        await api.delete(`http://localhost:5000/api/pembayaran/${id}`);
+        await api.delete(`/api/pembayaran/${id}`);
         toast.success("Catatan pembayaran dihapus.");
         await fetchPembayaran();
       } catch (error) {

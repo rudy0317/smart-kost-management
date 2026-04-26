@@ -69,7 +69,7 @@ function Penyewa() {
 
   const handleShowAkun = async (item) => {
     try {
-      const response = await api.get(`http://localhost:5000/api/penyewa/${item.id}/akun`);
+      const response = await api.get(`/api/penyewa/${item.id}/akun`);
       const akun = response.data;
 
       Swal.fire({
@@ -107,7 +107,7 @@ function Penyewa() {
 
           if (confirmDelete.isConfirmed) {
             try {
-              await api.delete(`http://localhost:5000/api/penyewa/${item.id}/akun`);
+              await api.delete(`/api/penyewa/${item.id}/akun`);
               toast.success("Akun login berhasil dihapus!");
             } catch (err) {
               toast.error(err.response?.data?.message || "Gagal menghapus akun user");

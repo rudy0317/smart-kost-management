@@ -35,7 +35,7 @@ function Login() {
     setLoading(true)
 
     try {
-      const res = await api.post('http://localhost:5000/api/auth/login', {
+      const res = await api.post('/api/auth/login', {
         username,
         password
       })
