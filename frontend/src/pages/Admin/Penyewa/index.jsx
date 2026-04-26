@@ -7,7 +7,7 @@ import PenyewaModal from "./PenyewaModal";
 import { toast } from "react-toastify";
 import { fadeInUp, hoverClick } from "../../../utils/animations";
 import { btnPrimary, inputStyle } from "../../../utils/theme";
-import axios from "axios";
+import api from "../../../api";
 import Swal from "sweetalert2";
 
 function Penyewa() {
@@ -69,7 +69,7 @@ function Penyewa() {
 
   const handleShowAkun = async (item) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/penyewa/${item.id}/akun`);
+      const response = await api.get(`http://localhost:5000/api/penyewa/${item.id}/akun`);
       const akun = response.data;
 
       Swal.fire({
@@ -78,7 +78,7 @@ function Penyewa() {
           <div class="text-left bg-slate-50 p-4 rounded-xl mt-2 border border-slate-200">
             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Email / Username</p>
             <p class="font-mono font-bold text-indigo-600 mb-3 break-all">${akun.email}</p>
-            
+
             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Password Default</p>
             <p class="font-mono font-bold text-slate-800">${akun.no_hp}</p>
           </div>
@@ -107,7 +107,7 @@ function Penyewa() {
 
           if (confirmDelete.isConfirmed) {
             try {
-              await axios.delete(`http://localhost:5000/api/penyewa/${item.id}/akun`);
+              await api.delete(`http://localhost:5000/api/penyewa/${item.id}/akun`);
               toast.success("Akun login berhasil dihapus!");
             } catch (err) {
               toast.error(err.response?.data?.message || "Gagal menghapus akun user");

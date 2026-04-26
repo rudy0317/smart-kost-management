@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -11,7 +11,7 @@ export const useKamar = () => {
   const fetchKamar = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/kamar");
+      const res = await api.get("http://localhost:5000/api/kamar");
       setKamar(res.data);
     } catch (error) {
       console.error("Gagal ambil data", error);
@@ -25,10 +25,10 @@ export const useKamar = () => {
   const saveKamar = async (formData, editId) => {
     try {
       if (editId) {
-        await axios.put(`http://localhost:5000/api/kamar/${editId}`, formData);
+        await api.put(`http://localhost:5000/api/kamar/${editId}`, formData);
         toast.success("Unit berhasil diperbarui!");
       } else {
-        await axios.post("http://localhost:5000/api/kamar", formData);
+        await api.post("http://localhost:5000/api/kamar", formData);
         toast.success("Unit baru ditambahkan!");
       }
       await fetchKamar();
@@ -40,7 +40,7 @@ export const useKamar = () => {
       return false;
     }
   };
-  
+
   // 3. Hapus Data
   const deleteKamar = async (id) => {
     const result = await Swal.fire({
@@ -55,7 +55,7 @@ export const useKamar = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/kamar/${id}`);
+        await api.delete(`http://localhost:5000/api/kamar/${id}`);
         toast.success("Kamar dihapus.");
         await fetchKamar();
       } catch (error) {

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef, useMemo } from "react"; // Tambah useMemo
 import Sidebar from "../../components/Sidebar";
-import axios from "axios";
+import api from "../../api";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { fadeInUp } from "../../utils/animations";
@@ -52,7 +52,7 @@ function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get("http://localhost:5000/api/dashboard");
+      const res = await api.get("http://localhost:5000/api/dashboard");
       setData(res.data);
     } catch {
       setError("Gagal memuat data dashboard. Pastikan server berjalan.");

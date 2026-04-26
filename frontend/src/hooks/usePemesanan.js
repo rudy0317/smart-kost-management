@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -11,7 +11,7 @@ export const usePemesanan = () => {
   const fetchPemesanan = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/pemesanan");
+      const res = await api.get("http://localhost:5000/api/pemesanan");
       setPemesanan(res.data);
     } catch (err) {
       toast.error("Gagal sinkronisasi data pemesanan.");
@@ -22,7 +22,7 @@ export const usePemesanan = () => {
 
   const fetchKosongKamar = useCallback(async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/kamar");
+      const res = await api.get("http://localhost:5000/api/kamar");
       setKosongKamar(
         res.data.filter(
           (k) =>
@@ -37,7 +37,7 @@ export const usePemesanan = () => {
 
   const savePemesanan = async (formData) => {
     try {
-      await axios.post("http://localhost:5000/api/pemesanan", formData);
+      await api.post("http://localhost:5000/api/pemesanan", formData);
       toast.success("Pemesanan baru ditambahkan!");
       await fetchPemesanan();
       await fetchKosongKamar();
@@ -51,10 +51,10 @@ export const usePemesanan = () => {
   const updateStatus = async (id, status) => {
     try {
       if (status === "menunggu_pembayaran") {
-        await axios.post(`http://localhost:5000/api/pemesanan/${id}/setuju`);
+        await api.post(`http://localhost:5000/api/pemesanan/${id}/setuju`);
         toast.success("Pemesanan disetujui! Menunggu pembayaran.");
       } else if (status === "ditolak") {
-        await axios.put(`http://localhost:5000/api/pemesanan/${id}/tolak`);
+        await api.put(`http://localhost:5000/api/pemesanan/${id}/tolak`);
         toast.success("Pemesanan ditolak.");
       }
       await fetchPemesanan();
@@ -68,7 +68,7 @@ export const usePemesanan = () => {
 
   const sinyalBayar = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`);
+      await api.put(`http://localhost:5000/api/pemesanan/${id}/sinyal-bayar`);
       toast.success("Konfirmasi pembayaran terkirim! Admin akan segera memverifikasi.");
       await fetchPemesanan();
       return true;
@@ -80,8 +80,8 @@ export const usePemesanan = () => {
 
   const konfirmasiBayar = async (id, metode_bayar) => {
     try {
-      const res = await axios.post(`http://localhost:5000/api/pemesanan/${id}/konfirmasi-bayar`, { metode_bayar });
-      
+      const res = await api.post(`http://localhost:5000/api/pemesanan/${id}/konfirmasi-bayar`, { metode_bayar });
+
       await fetchPemesanan();
       await fetchKosongKamar();
 
@@ -93,7 +93,7 @@ export const usePemesanan = () => {
           html: `
             <div style="text-align:left; font-family:'Inter',sans-serif;">
               <p style="color:#475569; margin-bottom:16px; font-size:14px;">
-                Akun otomatis telah dibuat untuk <strong style="color:#1e293b;">${nama}</strong>. 
+                Akun otomatis telah dibuat untuk <strong style="color:#1e293b;">${nama}</strong>.
                 Sistem telah mengaktifkan penyewa & mencatat transaksi.
               </p>
               <div style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px;">
@@ -158,7 +158,7 @@ export const usePemesanan = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/pemesanan/${id}`);
+        await api.delete(`http://localhost:5000/api/pemesanan/${id}`);
         toast.success("Pemesanan dihapus.");
         await fetchPemesanan();
       } catch (err) {

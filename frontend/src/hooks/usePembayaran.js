@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -11,7 +11,7 @@ export const usePembayaran = () => {
   const fetchPembayaran = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/pembayaran");
+      const res = await api.get("http://localhost:5000/api/pembayaran");
       setPembayaran(res.data);
     } catch (error) {
       console.error("Gagal mengambil data pembayaran", error);
@@ -23,7 +23,7 @@ export const usePembayaran = () => {
   const fetchPenyewa = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/penyewa");
+      const res = await api.get("http://localhost:5000/api/penyewa");
       setPenyewa(res.data);
     } catch (error) {
       console.error("Gagal mengambil data penyewa", error);
@@ -35,13 +35,13 @@ export const usePembayaran = () => {
   const savePembayaran = async (formData, editId) => {
     try {
       if (editId) {
-        await axios.put(
+        await api.put(
           `http://localhost:5000/api/pembayaran/${editId}`,
           formData,
         );
         toast.success("Data pembayaran berhasil diperbarui.");
       } else {
-        await axios.post("http://localhost:5000/api/pembayaran", formData);
+        await api.post("http://localhost:5000/api/pembayaran", formData);
         toast.success("Pembayaran baru berhasil dicatat.");
       }
       await fetchPembayaran();
@@ -67,7 +67,7 @@ export const usePembayaran = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/pembayaran/${id}`);
+        await api.delete(`http://localhost:5000/api/pembayaran/${id}`);
         toast.success("Catatan pembayaran dihapus.");
         await fetchPembayaran();
       } catch (error) {

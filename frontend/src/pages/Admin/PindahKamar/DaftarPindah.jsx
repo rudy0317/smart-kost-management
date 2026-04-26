@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../api";
 import Swal from "sweetalert2";
 import { motion, AnimatePresence } from "framer-motion";
 import { fadeInUp, staggerContainer, hoverClick } from "../../../utils/animations";
-import { 
-  btnPrimary, cardStyle, 
-  labelStyle, thStyle, inputStyle 
+import {
+  btnPrimary, cardStyle,
+  labelStyle, thStyle, inputStyle
 } from "../../../utils/theme";
 
 const titleStyle = "text-xl font-black text-slate-800 tracking-tight";
@@ -38,8 +38,8 @@ const DaftarPindah = () => {
   const fetchFormOptions = async () => {
     try {
       const [tenantsRes, roomsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/pindah-kamar/active-tenants"),
-        axios.get("http://localhost:5000/api/pindah-kamar/available-rooms")
+        api.get("http://localhost:5000/api/pindah-kamar/active-tenants"),
+        api.get("http://localhost:5000/api/pindah-kamar/available-rooms")
       ]);
       setTenants(tenantsRes.data);
       setRooms(roomsRes.data);
@@ -64,7 +64,7 @@ const DaftarPindah = () => {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/pindah-kamar", formData);
+      await api.post("http://localhost:5000/api/pindah-kamar", formData);
       Swal.fire({
         icon: "success",
         title: "Berhasil",
@@ -81,7 +81,7 @@ const DaftarPindah = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/pindah-kamar");
+      const response = await api.get("http://localhost:5000/api/pindah-kamar");
       setRequests(response.data);
     } catch (error) {
       console.error("Error fetching requests:", error);
@@ -93,8 +93,8 @@ const DaftarPindah = () => {
     const isSetuju = action === 'setuju';
     const konfirmasi = await Swal.fire({
       title: isSetuju ? "Setujui Pindah Kamar?" : "Tolak Pindah Kamar?",
-      text: isSetuju 
-        ? "Kamar pengguna akan diubah ke kamar baru dan tagihan berbeda akan berlaku di bulan berikutnya." 
+      text: isSetuju
+        ? "Kamar pengguna akan diubah ke kamar baru dan tagihan berbeda akan berlaku di bulan berikutnya."
         : "Permintaan pindah kamar akan dibatalkan.",
       icon: "warning",
       showCancelButton: true,
@@ -105,7 +105,7 @@ const DaftarPindah = () => {
 
     if (konfirmasi.isConfirmed) {
       try {
-        await axios.post(`http://localhost:5000/api/pindah-kamar/${id}/${action}`);
+        await api.post(`http://localhost:5000/api/pindah-kamar/${id}/${action}`);
         const Toast = Swal.mixin({
           toast: true,
           position: "top-end",
@@ -134,7 +134,7 @@ const DaftarPindah = () => {
 
     if (konfirmasi.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/pindah-kamar/${id}`);
+        await api.delete(`http://localhost:5000/api/pindah-kamar/${id}`);
         Swal.fire({
           icon: "success",
           title: "Terhapus!",
@@ -180,10 +180,10 @@ const DaftarPindah = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`${inputStyle} sm:w-64`}
             />
-            <motion.button 
+            <motion.button
               whileHover={hoverClick.whileHover}
               whileTap={hoverClick.whileTap}
-              onClick={handleOpenModal} 
+              onClick={handleOpenModal}
               className={`${btnPrimary} px-8 py-3.5 text-[15px] whitespace-nowrap flex items-center justify-center gap-2`}
             >
               + Tambah Manual
@@ -294,7 +294,7 @@ const DaftarPindah = () => {
                   className={`${inputStyle} flex items-center justify-between cursor-pointer`}
                 >
                   <span className={formData.id_penyewa ? "text-slate-800 font-medium" : "text-slate-400"}>
-                    {formData.id_penyewa 
+                    {formData.id_penyewa
                       ? tenants.find(t => t.id == formData.id_penyewa)?.nama + ` (Kamar ${tenants.find(t => t.id == formData.id_penyewa)?.id_kamar})`
                       : "-- Pilih Penyewa Aktif --"}
                   </span>
