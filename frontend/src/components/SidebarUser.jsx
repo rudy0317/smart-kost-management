@@ -22,27 +22,27 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
       setUserData({
         nama: payload.nama || "Penyewa",
         no_hp: payload.no_hp || "-",
-        role: "Penyewa"
+        role: "Penyewa",
       });
     } catch {}
 
-    // Real update: fetch latest from dashboard info (contains specific tenant name)
+    // Real update: fetch latest from dashboard info
     api.get("/api/user-dashboard/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
         const data = res.data;
-        if (data.status === 'active' && data.penyewa) {
+        if (data.status === "active" && data.penyewa) {
           setUserData({
             nama: data.penyewa.nama,
             no_hp: data.penyewa.no_hp || "-",
-            role: "Penyewa"
+            role: "Penyewa",
           });
         } else if (data.latest_booking) {
           setUserData({
             nama: data.latest_booking.nama,
             no_hp: data.latest_booking.no_hp || "-",
-            role: "Penyewa"
+            role: "Penyewa",
           });
         }
       })
@@ -65,7 +65,7 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
     },
     {
       id: "pengeluaran",
-      label: "Buku Kas Pribadi",
+      label: "Kas Pribadi",
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -74,7 +74,7 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
     },
     {
       id: "history",
-      label: "Riwayat Sewa",
+      label: "Riwayat",
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -83,7 +83,7 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
     },
     {
       id: "katalog",
-      label: "Katalog Kamar",
+      label: "Katalog",
       path: "/katalog",
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,7 +101,6 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
       showCancelButton: true,
       confirmButtonText: "Ya, Keluar",
       cancelButtonText: "Batal",
-      // Dark theme
       background: "#0f172a",
       color: "#f1f5f9",
       iconColor: "#f59e0b",
@@ -131,8 +130,13 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
     }
   };
 
+  const visibleMenuItems = menuItems.filter(
+    (item) => !(item.id === "katalog" && status === "active")
+  );
+
   return (
     <>
+      {/* ── PROFILE MODAL ── */}
       <AnimatePresence>
         {showProfile && (
           <>
@@ -170,7 +174,10 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
                       <p className="text-sm font-bold text-cyan-400">Penyewa Aktif</p>
                     </div>
                   </div>
-                  <button onClick={handleLogout} className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-sm transition-all border border-red-500/20">
+                  <button
+                    onClick={handleLogout}
+                    className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-sm transition-all border border-red-500/20"
+                  >
                     Keluar
                   </button>
                 </div>
@@ -180,40 +187,107 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
         )}
       </AnimatePresence>
 
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-slate-900 border-t border-slate-800 shadow-2xl">
+        <div className="flex items-stretch h-16">
+          {visibleMenuItems.map((item) => {
+            const isActive = item.path
+              ? location.pathname === item.path
+              : activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleMenuClick(item)}
+                className="flex-1 flex flex-col items-center justify-center gap-1 relative transition-all"
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="userBottomNavIndicator"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-cyan-400 rounded-full"
+                  />
+                )}
+                <div className={`transition-colors ${isActive ? "text-cyan-400" : "text-slate-500"}`}>
+                  {item.icon}
+                </div>
+                <span className={`text-[10px] font-bold transition-colors ${isActive ? "text-cyan-400" : "text-slate-500"}`}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* Avatar / Profile button */}
+          <button
+            onClick={() => setShowProfile(!showProfile)}
+            className="flex-1 flex flex-col items-center justify-center gap-1 relative"
+          >
+            <div className="w-7 h-7 rounded-full bg-cyan-600 flex items-center justify-center text-white font-black text-xs">
+              {avatarLetter}
+            </div>
+            <span className="text-[10px] font-bold text-slate-500">Profil</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* ── DESKTOP SIDEBAR (hidden on mobile) ── */}
       <motion.div
         animate={{ width: isOpen ? 256 : 80 }}
         transition={{ duration: 0.4, ease: "circOut" }}
-        className="sticky top-0 h-screen bg-slate-900 flex flex-col z-40 shadow-xl overflow-hidden border-r border-slate-800 shrink-0"
+        className="hidden md:flex sticky top-0 h-screen bg-slate-900 flex-col z-40 shadow-xl overflow-hidden border-r border-slate-800 shrink-0"
       >
         <div className={`p-6 flex items-center mb-4 transition-all ${isOpen ? "justify-between" : "justify-center"}`}>
           {isOpen && (
             <motion.h3
-              initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
               className={`text-2xl whitespace-nowrap ${textUserAccent}`}
             >
               KOST ASYNC
             </motion.h3>
           )}
-          <button onClick={() => setIsOpen(!isOpen)} className="w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors cursor-pointer">
-            <svg className={`w-5 h-5 transition-transform ${isOpen ? "" : "rotate-180"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors cursor-pointer"
+          >
+            <svg
+              className={`w-5 h-5 transition-transform ${isOpen ? "" : "rotate-180"}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
         </div>
 
         <nav className="flex-1 px-3.5 py-2 space-y-2 overflow-y-auto custom-scrollbar">
-          {menuItems.filter(item => !(item.id === 'katalog' && status === 'active')).map((item) => {
-            const isActive = activeTab === item.id;
+          {visibleMenuItems.map((item) => {
+            const isActive = item.path
+              ? location.pathname === item.path
+              : activeTab === item.id;
             return (
               <div key={item.id} onClick={() => handleMenuClick(item)} className="cursor-pointer group">
                 <motion.div
-                  whileHover={{ x: 4 }} whileTap={{ scale: 0.97 }}
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.97 }}
                   className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 font-bold ${
                     isActive ? btnUserPrimary : "text-slate-400 hover:bg-slate-800/80 hover:text-slate-100"
                   } ${!isOpen ? "justify-center" : ""}`}
                 >
-                  <div className={`${isActive ? "text-white" : "text-slate-500 group-hover:text-cyan-400"}`}>{item.icon}</div>
-                  {isOpen && <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="whitespace-nowrap text-sm">{item.label}</motion.span>}
+                  <div className={`${isActive ? "text-white" : "text-slate-500 group-hover:text-cyan-400"}`}>
+                    {item.icon}
+                  </div>
+                  {isOpen && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      className="whitespace-nowrap text-sm"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
                 </motion.div>
               </div>
             );
@@ -221,17 +295,24 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
         </nav>
 
         <div className="p-4 border-t border-slate-800 bg-slate-900/50">
-          <div className={`flex items-center ${isOpen ? "justify-between" : "justify-center"} bg-slate-800 p-2.5 rounded-xl cursor-pointer`} onClick={() => setShowProfile(!showProfile)}>
+          <div
+            className={`flex items-center ${isOpen ? "justify-between" : "justify-center"} bg-slate-800 p-2.5 rounded-xl cursor-pointer`}
+            onClick={() => setShowProfile(!showProfile)}
+          >
             {isOpen ? (
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold shrink-0">{avatarLetter}</div>
+                <div className="w-9 h-9 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold shrink-0">
+                  {avatarLetter}
+                </div>
                 <div className="text-left overflow-hidden">
                   <p className="text-sm font-bold text-slate-200 truncate">{displayName}</p>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{displayRole}</p>
                 </div>
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold shrink-0">{avatarLetter}</div>
+              <div className="w-9 h-9 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold shrink-0">
+                {avatarLetter}
+              </div>
             )}
             {isOpen && (
               <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

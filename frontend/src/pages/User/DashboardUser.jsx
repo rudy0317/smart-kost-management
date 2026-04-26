@@ -129,11 +129,11 @@ function DashboardUser() {
     <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
       <SidebarUser activeTab={activeTab} setActiveTab={setActiveTab} status={data.status} />
 
-      <main className="flex-1 max-h-screen overflow-y-auto custom-scrollbar p-6 sm:p-10 relative">
+      <main className="flex-1 max-h-screen overflow-y-auto custom-scrollbar p-4 sm:p-6 md:p-10 pb-24 md:pb-10 relative">
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
         <header className="mb-10">
-           <h1 className="text-4xl font-black text-white tracking-tight uppercase">
+           <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight uppercase">
              {activeTab === 'overview' ? 'Overview' : activeTab === 'pengeluaran' ? 'Buku Kas Pribadi' : 'Riwayat Sewa'}
            </h1>
            <p className="text-slate-500 mt-1">Halo Selamat Datang Kembali!</p>

@@ -196,11 +196,11 @@ function Penyewa() {
         variants={fadeInUp}
         initial="initial"
         animate="animate"
-        className="flex-1 p-10"
+        className="flex-1 p-4 md:p-10 pb-20 md:pb-10"
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tight">
               Data Penyewa
             </h1>
             <p className="text-slate-500 mt-1">

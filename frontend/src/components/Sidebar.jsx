@@ -9,6 +9,8 @@ function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
   const [adminData, setAdminData] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showMoreDrawer, setShowMoreDrawer] = useState(false);
+
   // Fetch data admin dari /api/auth/me
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -43,18 +45,8 @@ function Sidebar() {
       path: "/dashboard",
       label: "Dashboard",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       ),
     },
@@ -62,18 +54,8 @@ function Sidebar() {
       path: "/kamar",
       label: "Kamar",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
     },
@@ -81,18 +63,8 @@ function Sidebar() {
       path: "/pemesanan",
       label: "Pemesanan",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
     },
@@ -100,18 +72,8 @@ function Sidebar() {
       path: "/penyewa",
       label: "Penyewa",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
     },
@@ -119,18 +81,8 @@ function Sidebar() {
       path: "/pindah-kamar",
       label: "Req Pindah",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
         </svg>
       ),
     },
@@ -138,18 +90,8 @@ function Sidebar() {
       path: "/pembayaran",
       label: "Pembayaran",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
     },
@@ -157,18 +99,8 @@ function Sidebar() {
       path: "/pengeluaran",
       label: "Pengeluaran",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
         </svg>
       ),
     },
@@ -176,22 +108,16 @@ function Sidebar() {
       path: "/laporan",
       label: "Laporan",
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6m2 0h2a2 2 0 002-2v-6a2 2 0 00-2-2h-2m-2 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4m6 4h-6"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6m2 0h2a2 2 0 002-2v-6a2 2 0 00-2-2h-2m-2 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4m6 4h-6" />
         </svg>
       ),
     },
   ];
+
+  // Bottom nav: 4 primary items + "Lainnya" button
+  const bottomNavItems = menuItems.slice(0, 4);
+  const drawerItems = menuItems.slice(4);
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -251,7 +177,6 @@ function Sidebar() {
 
                   {/* Data rows */}
                   <div className="space-y-3">
-                    {/* Nama */}
                     <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-3.5 py-2.5">
                       <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                         <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,7 +189,6 @@ function Sidebar() {
                       </div>
                     </div>
 
-                    {/* Email */}
                     <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-3.5 py-2.5">
                       <div className="w-7 h-7 rounded-lg bg-cyan-50 flex items-center justify-center shrink-0">
                         <svg className="w-3.5 h-3.5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -277,7 +201,6 @@ function Sidebar() {
                       </div>
                     </div>
 
-                    {/* Username */}
                     <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-3.5 py-2.5">
                       <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                         <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -308,16 +231,127 @@ function Sidebar() {
         )}
       </AnimatePresence>
 
-      {/* ── SIDEBAR UTAMA ── */}
+      {/* ── "LAINNYA" SLIDE-UP DRAWER (Mobile Only) ── */}
+      <AnimatePresence>
+        {showMoreDrawer && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMoreDrawer(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed bottom-16 left-0 right-0 z-40 md:hidden bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 pb-2"
+            >
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 bg-slate-200 rounded-full" />
+              </div>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-6 pt-2 pb-3">Menu Lainnya</p>
+              <div className="grid grid-cols-2 gap-2 px-4 pb-4">
+                {drawerItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setShowMoreDrawer(false)}
+                      className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all ${
+                        isActive
+                          ? "bg-indigo-50 text-indigo-700"
+                          : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      <div className={isActive ? "text-indigo-600" : "text-slate-400"}>
+                        {item.icon}
+                      </div>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Admin profile row in drawer */}
+              <div className="border-t border-slate-100 mx-4 pt-3 pb-1 flex items-center justify-between">
+                <button
+                  onClick={() => { setShowMoreDrawer(false); setShowProfile(true); }}
+                  className="flex items-center gap-3"
+                >
+                  <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-black text-sm">
+                    {avatarLetter}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-black text-slate-700">{displayName}</p>
+                    <p className="text-xs text-slate-400">Super Admin</p>
+                  </div>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="p-2.5 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-white border-t border-slate-100 shadow-2xl shadow-slate-900/10">
+        <div className="flex items-stretch h-16">
+          {bottomNavItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="flex-1 flex flex-col items-center justify-center gap-1 transition-all relative"
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="adminBottomNavIndicator"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-indigo-600 rounded-full"
+                  />
+                )}
+                <div className={`transition-colors ${isActive ? "text-indigo-600" : "text-slate-400"}`}>
+                  {item.icon}
+                </div>
+                <span className={`text-[10px] font-bold transition-colors ${isActive ? "text-indigo-600" : "text-slate-400"}`}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+
+          {/* "Lainnya" button */}
+          <button
+            onClick={() => setShowMoreDrawer(!showMoreDrawer)}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 transition-all ${showMoreDrawer ? "text-indigo-600" : "text-slate-400"}`}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+            </svg>
+            <span className="text-[10px] font-bold">Lainnya</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* ── DESKTOP SIDEBAR (hidden on mobile) ── */}
       <motion.div
         animate={{ width: isOpen ? 256 : 80 }}
         transition={{ duration: 0.4, ease: "circOut" }}
-        className="sticky top-0 h-screen bg-white flex flex-col z-40 shadow-xl overflow-hidden border-r border-slate-100 shrink-0"
+        className="hidden md:flex sticky top-0 h-screen bg-white flex-col z-40 shadow-xl overflow-hidden border-r border-slate-100 shrink-0"
       >
         {/* HEADER & TOMBOL TOGGLE */}
-        <div
-          className={`p-6 flex items-center mb-4 transition-all ${isOpen ? "justify-between" : "justify-center"}`}
-        >
+        <div className={`p-6 flex items-center mb-4 transition-all ${isOpen ? "justify-between" : "justify-center"}`}>
           <AnimatePresence>
             {isOpen && (
               <motion.h3
@@ -337,18 +371,8 @@ function Sidebar() {
             className="w-8 h-8 shrink-0 flex items-center justify-center bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors cursor-pointer"
             title={isOpen ? "Sembunyikan Menu" : "Tampilkan Menu"}
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </motion.button>
         </div>
@@ -358,11 +382,7 @@ function Sidebar() {
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="block outline-none group"
-              >
+              <Link key={item.path} to={item.path} className="block outline-none group">
                 <motion.div
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.97 }}
@@ -372,9 +392,7 @@ function Sidebar() {
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                   } ${!isOpen ? "justify-center" : ""}`}
                 >
-                  <div
-                    className={`${isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-indigo-400"}`}
-                  >
+                  <div className={`${isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-indigo-400"}`}>
                     {item.icon}
                   </div>
 
@@ -409,7 +427,7 @@ function Sidebar() {
           <div
             className={`flex items-center ${isOpen ? "justify-between" : "justify-center"} bg-white border border-slate-100 p-2.5 rounded-xl`}
           >
-            {/* Info Admin — bisa diklik buat buka modal profile */}
+            {/* Info Admin */}
             <AnimatePresence>
               {isOpen && (
                 <motion.div

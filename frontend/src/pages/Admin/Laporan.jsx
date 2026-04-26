@@ -140,12 +140,12 @@ function Laporan() {
         variants={fadeInUp}
         initial="initial"
         animate="animate"
-        className="flex-1 p-10 overflow-y-auto"
+        className="flex-1 p-4 md:p-10 pb-20 md:pb-10 overflow-y-auto"
       >
         {/* Header */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-4">
           <div>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tight">Laporan Keuangan</h1>
+            <h1 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tight">Laporan Keuangan</h1>
             <p className="text-slate-500 mt-1">Pantau pemasukan, pengeluaran, dan status pembayaran.</p>
           </div>
 

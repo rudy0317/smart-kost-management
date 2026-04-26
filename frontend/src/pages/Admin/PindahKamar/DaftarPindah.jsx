@@ -165,11 +165,11 @@ const DaftarPindah = () => {
         variants={staggerContainer}
         initial="initial"
         animate="animate"
-        className="flex-1 p-10"
+        className="flex-1 p-4 md:p-10 pb-20 md:pb-10"
       >
         <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tight">Request Pindah</h1>
+            <h1 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tight">Request Pindah</h1>
             <p className="text-slate-500 mt-1">Kelola permohonan pindah kamar penyewa.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">

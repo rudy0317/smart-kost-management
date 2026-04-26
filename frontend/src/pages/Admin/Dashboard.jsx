@@ -131,12 +131,12 @@ function Dashboard() {
         variants={fadeInUp}
         initial="initial"
         animate="animate"
-        className="flex-1 p-10 overflow-y-auto"
+        className="flex-1 p-4 md:p-10 pb-20 md:pb-10 overflow-y-auto"
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-10 gap-4">
           <div>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tight">
               Dashboard
             </h1>
             <p className="text-slate-500 mt-1">
@@ -178,8 +178,8 @@ function Dashboard() {
         {!loading && data && (
           <>
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+              <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                   Total Kamar
                 </p>
@@ -187,7 +187,7 @@ function Dashboard() {
                   {data.total_kamar}
                 </h2>
               </div>
-              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+              <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                   Kamar Terisi
                 </p>
@@ -195,7 +195,7 @@ function Dashboard() {
                   {data.terisi}
                 </h2>
               </div>
-              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+              <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                   Kamar Kosong
                 </p>
@@ -203,7 +203,7 @@ function Dashboard() {
                   {data.kosong}
                 </h2>
               </div>
-              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+              <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                   Pendapatan
                 </p>
@@ -248,7 +248,7 @@ function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Pembayaran Belum Lunas */}
               <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden text-slate-800">
-                <div className="p-8 border-b border-slate-50">
+                <div className="p-4 md:p-8 border-b border-slate-50">
                   <h3 className="text-base font-bold text-slate-800 tracking-tight">
                     Pembayaran Belum Lunas
                   </h3>
@@ -385,7 +385,7 @@ function Dashboard() {
 
               {/* Aktivitas Terbaru */}
               <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-8 border-b border-slate-50">
+                <div className="p-4 md:p-8 border-b border-slate-50">
                   <h3 className="text-base font-bold text-slate-800 tracking-tight">
                     Aktivitas Terbaru
                   </h3>
