@@ -10,6 +10,11 @@ import KatalogGuest from "./pages/Guest/KatalogGuest";
 import LoginUser from "./pages/User/LoginUser";
 import PemesananUser from "./pages/User/PemesananUser";
 import DashboardUser from "./pages/User/DashboardUser";
+import GantiPassword from "./pages/User/GantiPassword";
+import PindahKamarUser from "./pages/User/PindahKamarUser";
+import PembayaranUser from "./pages/User/PembayaranUser";
+import PengumumanUser from "./pages/User/PengumumanUser";
+import KritikSaranUser from "./pages/User/KritikSaranUser";
 
 // --- ADMIN PAGES ---
 import Login from "./pages/Admin/Login";
@@ -21,6 +26,9 @@ import Pengeluaran from "./pages/Admin/Pengeluaran";
 import Laporan from "./pages/Admin/Laporan";
 import Pemesanan from "./pages/Admin/Pemesanan";
 import DaftarPindah from "./pages/Admin/PindahKamar/DaftarPindah";
+import AdminPengumuman from "./pages/Admin/Pengumuman";
+import AdminPelanggaran from "./pages/Admin/Pelanggaran";
+import AdminGantiPassword from "./pages/Admin/GantiPassword";
 
 // --- PROTECTED ROUTE: hanya user yang sudah login ---
 function RequireUserLogin({ children }) {
@@ -91,6 +99,46 @@ function App() {
             </GuestOnlyRoute>
           }
         />
+        <Route
+          path="/ganti-password-user"
+          element={
+            <RequireUserLogin>
+              <GantiPassword />
+            </RequireUserLogin>
+          }
+        />
+        <Route
+          path="/pindah-kamar-user"
+          element={
+            <RequireUserLogin>
+              <PindahKamarUser />
+            </RequireUserLogin>
+          }
+        />
+        <Route
+          path="/pembayaran-user"
+          element={
+            <RequireUserLogin>
+              <PembayaranUser />
+            </RequireUserLogin>
+          }
+        />
+        <Route
+          path="/pengumuman-user"
+          element={
+            <RequireUserLogin>
+              <PengumumanUser />
+            </RequireUserLogin>
+          }
+        />
+        <Route
+          path="/kritik-saran-user"
+          element={
+            <RequireUserLogin>
+              <KritikSaranUser />
+            </RequireUserLogin>
+          }
+        />
 
         {/* ── HALAMAN ADMIN ── */}
         <Route path="/login" element={<AdminGuestOnlyRoute><Login /></AdminGuestOnlyRoute>} />
@@ -102,6 +150,9 @@ function App() {
         <Route path="/laporan" element={<RequireAdminLogin><Laporan /></RequireAdminLogin>} />
         <Route path="/pemesanan" element={<RequireAdminLogin><Pemesanan /></RequireAdminLogin>} />
         <Route path="/pindah-kamar" element={<RequireAdminLogin><DaftarPindah /></RequireAdminLogin>} />
+        <Route path="/pengumuman" element={<RequireAdminLogin><AdminPengumuman /></RequireAdminLogin>} />
+        <Route path="/pelanggaran" element={<RequireAdminLogin><AdminPelanggaran /></RequireAdminLogin>} />
+        <Route path="/ganti-password" element={<RequireAdminLogin><AdminGantiPassword /></RequireAdminLogin>} />
       </Routes>
     </BrowserRouter>
   );

@@ -7,6 +7,7 @@ import PembayaranModal from "./PembayaranModal";
 import { toast } from "react-toastify";
 import { fadeInUp, hoverClick } from "../../../utils/animations";
 import { btnPrimary, inputStyle } from "../../../utils/theme";
+import api from "../../../api";
 
 function Pembayaran() {
   const {
@@ -76,6 +77,19 @@ function Pembayaran() {
 
   const handleDelete = (id) => {
     deletePembayaran(id);
+  };
+
+  const handleVerify = async (id) => {
+    const token = localStorage.getItem("token");
+    try {
+      await api.patch(`/api/pembayaran/${id}/verify`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Pembayaran berhasil diverifikasi!");
+      fetchPembayaran();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Gagal verifikasi");
+    }
   };
 
   const handleSort = (key) => {
@@ -194,6 +208,7 @@ function Pembayaran() {
           data={processedData}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onVerify={handleVerify}
           renderSortIcon={renderSortIcon}
           onSort={handleSort}
           formatBulanDisplay={formatBulanDisplay}

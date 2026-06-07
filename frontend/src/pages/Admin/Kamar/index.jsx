@@ -2,13 +2,31 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 
-// Import Components, Hooks, & Theme
 import Sidebar from "../../../components/Sidebar";
 import KamarTable from "./KamarTable";
 import KamarModal from "./KamarModal";
 import { useKamar } from "../../../hooks/useKamar";
+import api from "../../../api";
 import { fadeInUp, hoverClick } from "../../../utils/animations";
 import { btnPrimary, inputStyle } from "../../../utils/theme";
+
+const DEFAULT_BY_TIPE = {
+  Standard: {
+    seri: 'A',
+    fasilitas: ['AC', 'Kipas Angin', 'KM Dalam'],
+    harga: 800000,
+  },
+  Premium: {
+    seri: 'B',
+    fasilitas: ['AC', 'Kipas Angin', 'KM Dalam', 'WiFi', 'Water Heater'],
+    harga: 1500000,
+  },
+  VIP: {
+    seri: 'C',
+    fasilitas: ['AC', 'Kipas Angin', 'KM Dalam', 'WiFi', 'Water Heater', 'Smart TV', 'Kasur & Lemari'],
+    harga: 2500000,
+  },
+}
 
 function Kamar() {
   const { kamar, fetchKamar, saveKamar, deleteKamar } = useKamar();
@@ -17,29 +35,49 @@ function Kamar() {
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({
     nomor: "",
+    seri: "",
     tipe: "",
     harga: "",
     fasilitas: "",
     status: "kosong",
+    renovasi: 0,
+    batas_kamar: 1,
   });
 
   const [initialForm, setInitialForm] = useState(null);
   const [fasilitasList, setFasilitasList] = useState([]);
 
-  // State Filter & Search
   const [statusFilter, setStatusFilter] = useState("semua");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
-    key: "nomor",
+    key: "seri",
     direction: "asc",
   });
 
-  // State khusus buat buka-tutup Custom Dropdown Filter
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [limits, setLimits] = useState([]);
+
+  const token = localStorage.getItem("token")
+  const config = { headers: { Authorization: `Bearer ${token}` } }
 
   useEffect(() => {
     fetchKamar();
+    api.get("/api/kamar/limits", config).then(res => setLimits(res.data)).catch(() => {})
   }, [fetchKamar]);
+
+  const handleTipeSelect = (tipe) => {
+    const def = DEFAULT_BY_TIPE[tipe]
+    if (!def) return
+    const fasStr = def.fasilitas.join(", ")
+    setForm((prev) => ({
+      ...prev,
+      tipe,
+      seri: def.seri,
+      harga: def.harga,
+      fasilitas: fasStr,
+    }))
+    setFasilitasList(def.fasilitas)
+  }
 
   const handleFasilitasChange = (e) => {
     const { value, checked } = e.target;
@@ -58,16 +96,22 @@ function Kamar() {
       return closeModal();
     }
     const success = await saveKamar(form, editId);
-    if (success) closeModal();
+    if (success) {
+      closeModal();
+      api.get("/api/kamar/limits", config).then(res => setLimits(res.data)).catch(() => {})
+    }
   };
 
   const handleEdit = (k) => {
     const dataEdit = {
       nomor: k.nomor,
+      seri: k.seri || '',
       tipe: k.tipe,
       harga: String(k.harga),
       fasilitas: k.fasilitas || "",
       status: k.status || "kosong",
+      renovasi: k.renovasi ? 1 : 0,
+      batas_kamar: k.batas_kamar || 1,
     };
     setForm(dataEdit);
     setInitialForm(dataEdit);
@@ -84,15 +128,17 @@ function Kamar() {
     setInitialForm(null);
     setForm({
       nomor: "",
+      seri: "",
       tipe: "",
       harga: "",
       fasilitas: "",
       status: "kosong",
+      renovasi: 0,
+      batas_kamar: 1,
     });
     setFasilitasList([]);
   };
 
-  // --- LOGIC: FILTER & SORT ---
   const processedData = [...kamar]
     .filter((k) => {
       const matchesSearch =
@@ -134,12 +180,15 @@ function Kamar() {
     );
   };
 
-  // Label Dinamis buat Dropdown Filter
   const getFilterLabel = () => {
     if (statusFilter === "kosong") return "Tersedia (Kosong)";
     if (statusFilter === "terisi") return "Terisi";
     return "Semua Status";
   };
+
+  const totalSisa = limits.reduce((acc, l) => acc + l.sisa, 0)
+  const totalMax = limits.reduce((acc, l) => acc + l.max_kamar, 0)
+  const totalTotal = limits.reduce((acc, l) => acc + l.total, 0)
 
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
@@ -150,6 +199,58 @@ function Kamar() {
         animate="animate"
         className="flex-1 p-4 md:p-10 pb-20 md:pb-10"
       >
+        {/* LIMIT PROGRESS CARDS */}
+        {limits.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {limits.map((l) => (
+              <div key={l.seri} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                    Seri {l.seri}
+                  </span>
+                  <span className="text-sm font-black text-slate-700">
+                    {l.total}/{l.max_kamar}
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      l.sisa <= 0
+                        ? "bg-red-500"
+                        : l.sisa <= Math.ceil(l.max_kamar * 0.3)
+                          ? "bg-amber-500"
+                          : "bg-indigo-500"
+                    }`}
+                    style={{ width: `${Math.min((l.total / l.max_kamar) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  {l.sisa > 0 ? `${l.sisa} slot tersisa` : "Penuh"}
+                </p>
+              </div>
+            ))}
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 shadow-sm text-white">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black uppercase tracking-widest opacity-80">
+                  Total
+                </span>
+                <span className="text-sm font-black">
+                  {totalTotal}/{totalMax}
+                </span>
+              </div>
+              <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((totalTotal / totalMax) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-white/70 mt-1">
+                {totalSisa > 0 ? `${totalSisa} slot tersisa` : "Semua penuh"}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
             <h1 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tight">
@@ -159,8 +260,6 @@ function Kamar() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-
-            {/* --- CUSTOM DROPDOWN FILTER (BEBAS KOTAK-KOTAK) --- */}
             <div className="relative z-20">
               <div
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -182,12 +281,10 @@ function Kamar() {
               <AnimatePresence>
                 {isFilterOpen && (
                   <>
-                    {/* Overlay transparan biar pas klik di luar dropdown nutup */}
                     <div
                       className="fixed inset-0 z-10"
                       onClick={() => setIsFilterOpen(false)}
                     ></div>
-
                     <motion.div
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -209,7 +306,7 @@ function Kamar() {
                           className={`px-5 py-3 cursor-pointer text-sm font-bold flex items-center justify-between ${
                             statusFilter === item.val
                               ? "bg-indigo-50/80 text-indigo-600"
-                              : "text-slate-500 hover:bg-slate-50:bg-slate-700/50 hover:text-slate-700:text-slate-300"
+                              : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                           }`}
                         >
                           {item.label}
@@ -225,7 +322,6 @@ function Kamar() {
                 )}
               </AnimatePresence>
             </div>
-            {/* --------------------------------------------------- */}
 
             <input
               type="text"
@@ -274,6 +370,8 @@ function Kamar() {
           editId={editId}
           fasilitasList={fasilitasList}
           onFasilitasChange={handleFasilitasChange}
+          onTipeSelect={handleTipeSelect}
+          limits={limits}
         />
       </motion.main>
     </div>

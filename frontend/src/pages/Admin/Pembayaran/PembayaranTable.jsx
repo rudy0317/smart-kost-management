@@ -6,6 +6,7 @@ const PembayaranTable = ({
   data,
   onEdit,
   onDelete,
+  onVerify,
   renderSortIcon,
   onSort,
   formatBulanDisplay,
@@ -143,6 +144,17 @@ const PembayaranTable = ({
                     </td>
                     <td className="p-6">
                       <div className="flex justify-center gap-3">
+                        {item.status === 'menunggu_verifikasi' && (
+                          <motion.button
+                            whileHover={hoverClick.whileHover}
+                            whileTap={hoverClick.whileTap}
+                            onClick={() => onVerify(item.id)}
+                            className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                            title="Verifikasi Pembayaran"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </motion.button>
+                        )}
                         <motion.button
                           whileHover={hoverClick.whileHover}
                           whileTap={hoverClick.whileTap}

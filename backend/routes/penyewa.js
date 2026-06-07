@@ -1,83 +1,98 @@
 const express = require('express')
 const router = express.Router()
-const db = require('../db')
+const pool = require('../dbAsync')
+const AppError = require('../utils/AppError')
+const withTransaction = require('../utils/transaction')
+const { penyewa: penyewaValidation, validate } = require('../utils/validation')
 
-router.get('/', (req, res) => {
-  db.query('SELECT p.*, k.nomor as nomor_kamar FROM penyewa p LEFT JOIN kamar k ON p.id_kamar = k.id', (err, results) => {
-    if (err) return res.status(500).json({ message: 'Server error' })
-    res.json(results)
-  })
+router.get('/', async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT p.*, k.nomor as nomor_kamar FROM penyewa p LEFT JOIN kamar k ON p.id_kamar = k.id'
+    )
+    res.json(rows)
+  } catch (err) {
+    next(err)
+  }
 })
 
-router.post('/', (req, res) => {
-  const { nama, no_hp, id_kamar, tanggal_masuk } = req.body
-  db.query('INSERT INTO penyewa (nama, no_hp, id_kamar, tanggal_masuk) VALUES (?, ?, ?, ?)',
-    [nama, no_hp, id_kamar, tanggal_masuk],
-    (err) => {
-      if (err) return res.status(500).json({ message: 'Server error' })
-      // update status kamar jadi terisi
-      db.query('UPDATE kamar SET status = "terisi" WHERE id = ?', [id_kamar])
-      res.json({ message: 'Penyewa berhasil ditambahkan' })
-    }
-  )
+router.post('/', penyewaValidation, validate, async (req, res, next) => {
+  try {
+    const { nama, no_hp, id_kamar, tanggal_masuk } = req.body
+    const [result] = await pool.query(
+      'INSERT INTO penyewa (nama, no_hp, id_kamar, tanggal_masuk) VALUES (?, ?, ?, ?)',
+      [nama, no_hp, id_kamar, tanggal_masuk]
+    )
+    await pool.query('UPDATE kamar SET status = "terisi" WHERE id = ?', [id_kamar])
+    res.json({ message: 'Penyewa berhasil ditambahkan' })
+  } catch (err) {
+    next(err)
+  }
 })
 
-router.put('/:id', (req, res) => {
-  const { nama, no_hp, id_kamar, tanggal_masuk } = req.body
-  db.query('UPDATE penyewa SET nama=?, no_hp=?, id_kamar=?, tanggal_masuk=? WHERE id=?',
-    [nama, no_hp, id_kamar, tanggal_masuk, req.params.id],
-    (err) => {
-      if (err) return res.status(500).json({ message: 'Server error' })
-      res.json({ message: 'Penyewa berhasil diupdate' })
-    }
-  )
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { nama, no_hp, id_kamar, tanggal_masuk } = req.body
+    await pool.query(
+      'UPDATE penyewa SET nama=?, no_hp=?, id_kamar=?, tanggal_masuk=? WHERE id=?',
+      [nama, no_hp, id_kamar, tanggal_masuk, req.params.id]
+    )
+    res.json({ message: 'Penyewa berhasil diupdate' })
+  } catch (err) {
+    next(err)
+  }
 })
 
-router.delete('/:id', (req, res) => {
-  // ambil id_kamar dulu sebelum hapus
-  db.query('SELECT id_kamar FROM penyewa WHERE id = ?', [req.params.id], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Server error' })
-    const id_kamar = results[0].id_kamar
-    db.query('DELETE FROM penyewa WHERE id = ?', [req.params.id], (err) => {
-      if (err) return res.status(500).json({ message: 'Server error' })
-      // update status kamar jadi kosong
-      db.query('UPDATE kamar SET status = "kosong" WHERE id = ?', [id_kamar])
-      res.json({ message: 'Penyewa berhasil dihapus' })
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await withTransaction(async (conn) => {
+      const [penyewa] = await conn.query('SELECT id_kamar FROM penyewa WHERE id = ?', [req.params.id])
+      if (penyewa.length === 0) throw new AppError('Penyewa tidak ditemukan', 404)
+      const id_kamar = penyewa[0].id_kamar
+
+      await conn.query('DELETE FROM penyewa WHERE id = ?', [req.params.id])
+      await conn.query('UPDATE kamar SET status = "kosong" WHERE id = ?', [id_kamar])
     })
-  })
+    res.json({ message: 'Penyewa berhasil dihapus' })
+  } catch (err) {
+    next(err)
+  }
 })
 
 // ─── AMBIL INFO AKUN USER ─────────────────────────────────────────────────────
-router.get('/:id/akun', (req, res) => {
-  db.query(`
-    SELECT u.id, u.email, u.no_hp 
-    FROM users u 
-    JOIN penyewa p ON p.id_user = u.id 
-    WHERE p.id = ?`, 
-    [req.params.id], 
-    (err, results) => {
-      if (err) return res.status(500).json({ message: 'Server error' })
-      if (results.length === 0) return res.status(404).json({ message: 'Akun tidak ditemukan' })
-      res.json(results[0])
-    }
-  )
+router.get('/:id/akun', async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT u.id, u.email, u.no_hp 
+      FROM users u 
+      JOIN penyewa p ON p.id_user = u.id 
+      WHERE p.id = ?`, 
+      [req.params.id]
+    )
+    if (rows.length === 0) throw new AppError('Akun tidak ditemukan', 404)
+    res.json(rows[0])
+  } catch (err) {
+    next(err)
+  }
 })
 
 // ─── HAPUS AKUN USER (TANPA MENGHAPUS PENYEWA ATAU SEBALIKNYA) ────────────────
-router.delete('/:id/akun', (req, res) => {
-  db.query('SELECT id_user FROM penyewa WHERE id = ?', [req.params.id], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Server error' })
-    if (results.length === 0 || !results[0].id_user) return res.status(404).json({ message: 'Penyewa tidak memiliki akun terhubung' })
-    
-    const id_user = results[0].id_user
-    db.query('DELETE FROM users WHERE id = ?', [id_user], (err2) => {
-      if (err2) return res.status(500).json({ message: 'Gagal menghapus user' })
-      
-      // Putuskan relasi di tabel penyewa
-      db.query('UPDATE penyewa SET id_user = NULL WHERE id = ?', [req.params.id])
-      res.json({ message: 'Akun login penyewa berhasil dihapus' })
+router.delete('/:id/akun', async (req, res, next) => {
+  try {
+    await withTransaction(async (conn) => {
+      const [penyewa] = await conn.query('SELECT id_user FROM penyewa WHERE id = ?', [req.params.id])
+      if (penyewa.length === 0 || !penyewa[0].id_user) {
+        throw new AppError('Penyewa tidak memiliki akun terhubung', 404)
+      }
+
+      const id_user = penyewa[0].id_user
+      await conn.query('DELETE FROM users WHERE id = ?', [id_user])
+      await conn.query('UPDATE penyewa SET id_user = NULL WHERE id = ?', [req.params.id])
     })
-  })
+    res.json({ message: 'Akun login penyewa berhasil dihapus' })
+  } catch (err) {
+    next(err)
+  }
 })
 
 module.exports = router

@@ -2,16 +2,17 @@ const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const db = require('../db')
+const pool = require('../dbAsync')
+const AppError = require('../utils/AppError')
 
-const JWT_SECRET = 'secret_kost'
+const JWT_SECRET = process.env.JWT_SECRET_ADMIN || 'secret_kost'
 
 // ─── LOGIN ───────────────────────────────────────────────────────────────────
-router.post('/login', (req, res) => {
-  const { username, password } = req.body
+router.post('/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body
 
-  db.query('SELECT * FROM admin WHERE username = ?', [username], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Server error' })
+    const [results] = await pool.query('SELECT * FROM admin WHERE username = ?', [username])
     if (results.length === 0) return res.status(401).json({ message: 'Username tidak ditemukan' })
 
     const admin = results[0]
@@ -19,7 +20,6 @@ router.post('/login', (req, res) => {
 
     if (!isMatch) return res.status(401).json({ message: 'Password salah' })
 
-    // Simpan id, nama, email, username ke dalam token
     const token = jwt.sign(
       {
         id: admin.id,
@@ -32,37 +32,42 @@ router.post('/login', (req, res) => {
     )
 
     res.json({ token, message: 'Login berhasil' })
-  })
+  } catch (err) {
+    next(err)
+  }
 })
 
 // ─── GET DATA ADMIN YANG SEDANG LOGIN (/api/auth/me) ─────────────────────────
-router.get('/me', (req, res) => {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1] // Bearer <token>
+router.get('/me', async (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
 
-  if (!token) return res.status(401).json({ message: 'Token tidak ada' })
+    if (!token) throw new AppError('Token tidak ada', 401)
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: 'Token tidak valid' })
+    const decoded = await new Promise((resolve, reject) => {
+      jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) reject(new AppError('Token tidak valid', 403))
+        else resolve(decoded)
+      })
+    })
 
-    // Ambil data terbaru dari DB berdasarkan id di token
-    db.query(
+    const [results] = await pool.query(
       'SELECT id, username, nama, email FROM admin WHERE id = ?',
-      [decoded.id],
-      (dbErr, results) => {
-        if (dbErr) return res.status(500).json({ message: 'Server error' })
-        if (results.length === 0) return res.status(404).json({ message: 'Admin tidak ditemukan' })
-
-        const admin = results[0]
-        res.json({
-          id: admin.id,
-          username: admin.username,
-          nama: admin.nama || admin.username,
-          email: admin.email || '-',
-        })
-      }
+      [decoded.id]
     )
-  })
+    if (results.length === 0) throw new AppError('Admin tidak ditemukan', 404)
+
+    const admin = results[0]
+    res.json({
+      id: admin.id,
+      username: admin.username,
+      nama: admin.nama || admin.username,
+      email: admin.email || '-',
+    })
+  } catch (err) {
+    next(err)
+  }
 })
 
 module.exports = router

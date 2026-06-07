@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import api from '../../api'
-import { fadeInUp, hoverClick, staggerContainer } from '../../utils/animations'
-import { btnPrimary, inputStyle, labelStyle, cardStyle, thStyle } from '../../utils/theme'
+import { fadeInUp, hoverClick } from '../../utils/animations'
 import {
-  cardUser, inputUser, labelUser, btnUserPrimary, thUser, badgeUser, textUserAccent, trUser
+  cardUser, inputUser, labelUser, btnUserPrimary, thUser, badgeUser
 } from '../../utils/themeUser'
 import Swal from 'sweetalert2'
 import SidebarUser from '../../components/SidebarUser'
@@ -15,18 +14,85 @@ function DashboardUser() {
   const [activeTab, setActiveTab] = useState('overview') // overview | pengeluaran | history
   const [data, setData] = useState({ status: 'loading', penyewa: null, histori_pembayaran: [], latest_booking: null })
   const [pengeluaran, setPengeluaran] = useState([])
+  const [pelanggaran, setPelanggaran] = useState([])
 
   // State form pengeluaran
   const [form, setForm] = useState({ kategori: 'Listrik', keterangan: '', jumlah: '', tanggal: new Date().toISOString().split('T')[0] })
   const [isKategoriOpen, setIsKategoriOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // State untuk Pindah Kamar
-  const [isModalPindahOpen, setIsModalPindahOpen] = useState(false)
+  // State untuk Modal Pengeluaran
   const [isModalPengeluaranOpen, setIsModalPengeluaranOpen] = useState(false)
-  const [availableRooms, setAvailableRooms] = useState([])
-  const [pindahForm, setPindahForm] = useState({ id_kamar: '', alasan: '' })
-  const [isKamarOpen, setIsKamarOpen] = useState(false)
+  const lastNotifiedId = useRef(null)
+
+  // Broadcast pengumuman
+  useEffect(() => {
+    const token = localStorage.getItem("user_token")
+    if (!token) return
+    api.get("/api/pengumuman?status=aktif&limit=1", { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        if (res.data.length === 0) return
+        const latest = res.data[0]
+        const lastRead = localStorage.getItem("last_read_pengumuman_id")
+        if (lastRead && parseInt(lastRead) >= latest.id) return
+        Swal.fire({
+          title: latest.judul,
+          text: latest.isi,
+          icon: "info",
+          confirmButtonText: "Ok, Saya Baca",
+          background: "#0f172a",
+          color: "#f1f5f9",
+          confirmButtonColor: "#06b6d4",
+          customClass: { popup: "border border-slate-700 rounded-2xl" }
+        })
+        localStorage.setItem("last_read_pengumuman_id", String(latest.id))
+      })
+      .catch(() => {})
+  }, [])
+
+  // Notifikasi otomatis saat status pindah kamar disetujui/ditolak
+  useEffect(() => {
+    const rp = data.request_pindah
+    if (!rp || rp.status === 'pending') return
+    if (rp.id === lastNotifiedId.current) return
+    lastNotifiedId.current = rp.id
+
+    if (rp.status === 'disetujui') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Pindah Kamar Disetujui!',
+        text: `Pindah ke Kamar ${rp.nomor_kamar_baru} telah disetujui!`,
+        background: '#1e293b',
+        color: '#fff',
+        confirmButtonColor: '#06b6d4'
+      })
+    } else if (rp.status === 'ditolak') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Pindah Kamar Ditolak',
+        text: 'Pengajuan pindah kamar kamu ditolak oleh admin.',
+        background: '#1e293b',
+        color: '#fff',
+        confirmButtonColor: '#06b6d4'
+      })
+    }
+  }, [data.request_pindah])
+
+  // Polling tiap 15 detik selama ada request pending
+  useEffect(() => {
+    const token = localStorage.getItem('user_token')
+    if (!token) return
+
+    const config = { headers: { Authorization: `Bearer ${token}` } }
+
+    const interval = setInterval(() => {
+      api.get('/api/user-dashboard/me', config)
+        .then(res => setData(res.data))
+        .catch(() => {})
+    }, 15000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const token = localStorage.getItem('user_token')
@@ -36,11 +102,13 @@ function DashboardUser() {
 
     Promise.all([
       api.get('/api/user-dashboard/me', config),
-      api.get('/api/user-dashboard/pengeluaran', config)
+      api.get('/api/user-dashboard/pengeluaran', config),
+      api.get('/api/pelanggaran')
     ])
-    .then(([resMe, resPengeluaran]) => {
+    .then(([resMe, resPengeluaran, resPelanggaran]) => {
       setData(resMe.data)
       setPengeluaran(resPengeluaran.data)
+      setPelanggaran(resPelanggaran.data)
       setLoading(false)
     })
     .catch((err) => {
@@ -82,37 +150,6 @@ function DashboardUser() {
     }
   }
 
-  const handleOpenPindahModal = async () => {
-    try {
-      const token = localStorage.getItem('user_token')
-      const res = await api.get('/api/user-dashboard/available-rooms', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      setAvailableRooms(res.data)
-      setIsModalPindahOpen(true)
-    } catch (err) {
-      alert('Gagal mengambil daftar kamar')
-    }
-  }
-
-  const handleSubmitPindah = async (e) => {
-    e.preventDefault()
-    if(!pindahForm.id_kamar) return alert('Pilih kamar terlebih dahulu!')
-    try {
-      const token = localStorage.getItem('user_token')
-      await api.post('/api/user-dashboard/request-move', pindahForm, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Request pindah kamar dikirim!', background: '#1e293b', color: '#fff' })
-      setIsModalPindahOpen(false)
-      // refresh data
-      const resMe = await api.get('/api/user-dashboard/me', { headers: { Authorization: `Bearer ${token}` } })
-      setData(resMe.data)
-    } catch (err) {
-      alert(err.response?.data?.message || 'Gagal mengirim request')
-    }
-  }
-
   // Styles from themeUser
   const darkCard = cardUser
   const darkInput = inputUser
@@ -151,7 +188,7 @@ function DashboardUser() {
                       <>
                         <h2 className="text-3xl font-black text-white">Kamar {data.penyewa?.nomor_kamar}</h2>
                         <p className="text-slate-400 text-sm mt-1">{data.penyewa?.fasilitas}</p>
-                        {data.request_pindah ? (
+                        {data.request_pindah?.status === 'pending' ? (
                           <div className="mt-4 px-5 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between">
                             <p className="text-amber-400 text-xs font-bold leading-relaxed">
                               Menunggu persetujuan pindah ke<br/>
@@ -159,15 +196,32 @@ function DashboardUser() {
                             </p>
                             <svg className="w-5 h-5 text-amber-500 animate-pulse ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           </div>
-                        ) : (
-                          <button
-                            onClick={handleOpenPindahModal}
-                            className="mt-4 px-5 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2 group"
-                          >
-                            <svg className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                            Minta Pindah Kamar
-                          </button>
-                        )}
+                        ) : data.request_pindah?.status === 'disetujui' ? (
+                          <div className="mt-4 px-5 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between">
+                            <p className="text-emerald-400 text-xs font-bold leading-relaxed">
+                              Pindah ke Kamar <span className="text-emerald-300 text-sm font-black">{data.request_pindah.nomor_kamar_baru}</span>
+                              <br/>telah disetujui!
+                            </p>
+                            <svg className="w-5 h-5 text-emerald-500 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                        ) : data.request_pindah?.status === 'ditolak' ? (
+                          <>
+                            <div className="mt-4 px-5 py-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-between">
+                              <p className="text-red-400 text-xs font-bold leading-relaxed">
+                                Pengajuan pindah kamar<br/>
+                                <span className="text-red-300 text-sm font-black">ditolak</span>
+                              </p>
+                              <svg className="w-5 h-5 text-red-500 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </div>
+                            <button
+                              onClick={() => navigate('/pindah-kamar-user')}
+                              className="mt-3 px-5 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2 group"
+                            >
+                              <svg className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                              Ajukan Pindah Lagi
+                            </button>
+                          </>
+                        ) : null}
                       </>
                    ) : data.latest_booking?.status === 'menunggu_pembayaran' ? (
                       <>
@@ -214,6 +268,33 @@ function DashboardUser() {
                      <p className="text-2xl font-black text-white mt-1">
                         Rp {pengeluaran.reduce((acc, curr) => acc + Number(curr.jumlah), 0).toLocaleString('id-ID')}
                      </p>
+                  </div>
+                </div>
+              )}
+
+              {/* ATURAN PELANGGARAN */}
+              {pelanggaran.length > 0 && (
+                <div className={`${darkCard} p-6`}>
+                  <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-5 bg-amber-500 rounded-full inline-block" />
+                    Aturan & Pelanggaran Kost
+                  </h3>
+                  <div className="space-y-3">
+                    {pelanggaran.map((p) => (
+                      <div key={p.id} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                        <div className="flex items-start justify-between mb-1">
+                          <h4 className="text-sm font-bold text-slate-200">{p.nama}</h4>
+                          {p.sanksi && (
+                            <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20 whitespace-nowrap ml-2">
+                              Sanksi: {p.sanksi}
+                            </span>
+                          )}
+                        </div>
+                        {p.deskripsi && (
+                          <p className="text-xs text-slate-400 leading-relaxed">{p.deskripsi}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -325,75 +406,8 @@ function DashboardUser() {
           )}
         </AnimatePresence>
 
-        {/* MODAL PINDAH KAMAR */}
+        {/* MODAL TAMBAH PENGELUARAN */}
         <AnimatePresence>
-          {isModalPindahOpen && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-               <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className={`${darkCard} w-full max-w-md p-6 overflow-hidden relative`}>
-                  <button type="button" onClick={() => setIsModalPindahOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                  <h3 className="text-xl font-black text-white mb-2">Request Pindah Kamar</h3>
-                  <p className="text-slate-400 text-sm mb-6">Pilih kamar kosong yang tersedia untuk dipindah.</p>
-
-                  <form onSubmit={handleSubmitPindah} className="space-y-4">
-                    <div className="relative z-[60]">
-                      <label className={darkLabel}>Pilih Kamar Tujuan</label>
-                      <button
-                        type="button"
-                        onClick={() => setIsKamarOpen(!isKamarOpen)}
-                        className={`${darkInput} w-full text-left flex justify-between items-center`}
-                      >
-                        <span className={pindahForm.id_kamar ? 'text-slate-100' : 'text-slate-500'}>
-                          {pindahForm.id_kamar
-                            ? (() => { const k = availableRooms.find(r => String(r.id) === String(pindahForm.id_kamar)); return k ? `Kamar ${k.nomor} (${k.tipe}) - Rp ${Number(k.harga).toLocaleString('id-ID')}` : '-- Silakan Pilih --'; })()
-                            : '-- Silakan Pilih --'
-                          }
-                        </span>
-                        <span className="text-[10px] opacity-60 ml-2 shrink-0">▼</span>
-                      </button>
-                      <AnimatePresence>
-                        {isKamarOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full mt-2 left-0 right-0 z-[70] bg-slate-800 border border-slate-700 shadow-xl rounded-2xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar"
-                          >
-                            {availableRooms.length === 0 ? (
-                              <p className="px-4 py-3 text-sm text-slate-500 italic">Tidak ada kamar tersedia</p>
-                            ) : availableRooms.map((k) => (
-                              <button
-                                key={k.id}
-                                type="button"
-                                onClick={() => {
-                                  setPindahForm({ ...pindahForm, id_kamar: String(k.id) })
-                                  setIsKamarOpen(false)
-                                }}
-                                className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${
-                                  String(pindahForm.id_kamar) === String(k.id) ? 'bg-cyan-500/20 text-cyan-400 font-bold' : 'hover:bg-slate-700 text-slate-300'
-                                }`}
-                              >
-                                Kamar {k.nomor} ({k.tipe}) — Rp {Number(k.harga).toLocaleString('id-ID')}
-                              </button>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                    <div>
-                      <label className={darkLabel}>Alasan Pindah</label>
-                      <textarea required rows="3" className={`${darkInput} w-full`} placeholder="Contoh: Ingin ganti suasana, cari yang lebih luas..." value={pindahForm.alasan} onChange={e => setPindahForm({...pindahForm, alasan: e.target.value})}></textarea>
-                    </div>
-                    <button type="submit" className={`w-full py-4 ${btnUserPrimary} flex justify-center !rounded-xl mt-6`}>
-                      Kirim Request
-                    </button>
-                  </form>
-               </motion.div>
-            </motion.div>
-          )}
-
-          {/* MODAL TAMBAH PENGELUARAN */}
           {isModalPengeluaranOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className={`${darkCard} w-full max-w-md p-6 overflow-hidden relative shadow-2xl border-cyan-500/20`}>

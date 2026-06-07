@@ -40,7 +40,7 @@ const PembayaranModal = ({
 
   const kategoriOptions = ["Sewa Kamar", "Listrik", "Deposit", "Lainnya"];
   const metodeOptions = ["Tunai/Cash", "Transfer", "QRIS"];
-  const statusOptions = ["lunas", "dp", "terlambat"];
+  const statusOptions = ["lunas", "belum_lunas", "menunggu_verifikasi", "terlambat"];
 
   return (
     <AnimatePresence>

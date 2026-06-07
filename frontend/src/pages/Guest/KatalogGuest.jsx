@@ -48,7 +48,12 @@ function KatalogGuest() {
   }
 
   const filtered = kamar
-    .filter(k => filter === 'semua' || k.status === filter)
+    .filter(k => {
+      if (filter === 'semua') return true
+      if (filter === 'kosong') return (k.status === 'kosong' || k.status === 'tersedia') && !k.renovasi
+      if (filter === 'terisi') return k.status === 'terisi'
+      return true
+    })
     .filter(k =>
       search === '' ||
       k.nomor?.toString().includes(search) ||
@@ -193,14 +198,20 @@ function KatalogGuest() {
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent" />
 
                     {/* Badge status */}
-                    <div className="absolute top-3 right-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border ${
-                        k.status === 'kosong'
-                          ? 'bg-green-500/20 border-green-500/40 text-green-300'
-                          : 'bg-red-500/20 border-red-500/40 text-red-300'
-                      }`}>
-                        {k.status === 'kosong' ? '✅ Tersedia' : '🔴 Penuh'}
-                      </span>
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      {k.renovasi ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border bg-amber-500/20 border-amber-500/40 text-amber-300">
+                          🔧 Renovasi
+                        </span>
+                      ) : (
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border ${
+                          k.status === 'kosong'
+                            ? 'bg-green-500/20 border-green-500/40 text-green-300'
+                            : 'bg-red-500/20 border-red-500/40 text-red-300'
+                        }`}>
+                          {k.status === 'kosong' ? '✅ Tersedia' : '🔴 Penuh'}
+                        </span>
+                      )}
                     </div>
 
                     {/* Badge tipe */}
@@ -225,7 +236,13 @@ function KatalogGuest() {
                       {k.fasilitas || 'WiFi, Kamar Mandi Dalam, Kasur, Lemari, AC'}
                     </p>
 
-                    {k.status === 'kosong' ? (
+                    {k.renovasi ? (
+                      <button disabled
+                        className="w-full py-3 bg-amber-900/30 text-amber-600 font-bold rounded-2xl cursor-not-allowed text-sm border border-amber-800/30"
+                      >
+                        🔧 Dalam Renovasi
+                      </button>
+                    ) : k.status === 'kosong' ? (
                       <motion.button
                         {...hoverClick}
                         onClick={() => handleBooking(k.id)}

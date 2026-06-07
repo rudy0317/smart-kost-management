@@ -91,6 +91,56 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
         </svg>
       ),
     },
+    {
+      id: "pindah-kamar-user",
+      label: "Pindah Kamar",
+      path: "/pindah-kamar-user",
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+      ),
+    },
+    {
+      id: "pembayaran",
+      label: "Pembayaran",
+      path: "/pembayaran-user",
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+    },
+    {
+      id: "pengumuman-user",
+      label: "Pengumuman",
+      path: "/pengumuman-user",
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+        </svg>
+      ),
+    },
+    {
+      id: "kritik-saran",
+      label: "Kritik & Saran",
+      path: "/kritik-saran-user",
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+      ),
+    },
+    {
+      id: "ganti-password",
+      label: "Ganti Password",
+      path: "/ganti-password-user",
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      ),
+    },
   ];
 
   const handleLogout = async () => {
@@ -131,7 +181,12 @@ function SidebarUser({ activeTab, setActiveTab, status }) {
   };
 
   const visibleMenuItems = menuItems.filter(
-    (item) => !(item.id === "katalog" && status === "active")
+    (item) => {
+      if (item.id === "katalog" && status === "active") return false
+      if (item.id === "pindah-kamar-user" && status !== "active") return false
+      if (item.id === "pembayaran" && status !== "active") return false
+      return true
+    }
   );
 
   return (

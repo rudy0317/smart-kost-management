@@ -8,6 +8,17 @@ import {
 
 import { inputStyle, labelStyle, btnPrimary, btnAmber } from "../../../utils/theme";
 
+const listFasilitasDefault = [
+  "AC",
+  "Kipas Angin",
+  "KM Dalam",
+  "KM Luar",
+  "WiFi",
+  "Water Heater",
+  "Smart TV",
+  "Kasur & Lemari",
+];
+
 const KamarModal = ({
   isOpen,
   onClose,
@@ -17,30 +28,33 @@ const KamarModal = ({
   setForm,
   fasilitasList,
   onFasilitasChange,
+  onTipeSelect,
+  limits,
 }) => {
-  // State buat ngontrol custom dropdown
   const [isTipeOpen, setIsTipeOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const listFasilitasDefault = [
-    "AC",
-    "Kipas Angin",
-    "KM Dalam",
-    "KM Luar",
-    "WiFi",
-    "Water Heater",
-    "Smart TV",
-    "Kasur & Lemari",
-  ];
-
   const handleClose = () => {
     setIsTipeOpen(false);
     setIsStatusOpen(false);
     onClose();
   };
+
+  const handleTipeClick = (tipe) => {
+    onTipeSelect(tipe);
+    setIsTipeOpen(false);
+  };
+
+  const getTipeStatus = (tipe) => {
+    if (!limits || editId) return null;
+    const seri = { Standard: 'A', Premium: 'B', VIP: 'C' }[tipe]
+    const limit = limits.find(l => l.seri === seri)
+    if (limit && limit.sisa <= 0) return 'full'
+    return null
+  }
 
   return (
     <AnimatePresence>
@@ -67,7 +81,7 @@ const KamarModal = ({
                   {editId ? "Update Kamar" : "Unit Kamar Baru"}
                 </h3>
                 <p className="text-sm text-slate-400">
-                  Lengkapi detail spesifikasi kamar.
+                  {editId ? "Edit spesifikasi kamar." : "Pilih tipe, sisanya otomatis."}
                 </p>
               </div>
               <button
@@ -82,19 +96,27 @@ const KamarModal = ({
 
             <form onSubmit={onSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className={labelStyle}>Nomor</label>
-                  <input
-                    name="nomor"
-                    value={form.nomor}
-                    onChange={handleChange}
-                    required
-                    className={inputStyle}
-                    placeholder="A-01"
-                  />
-                </div>
+                {editId ? (
+                  <div className="space-y-1.5">
+                    <label className={labelStyle}>Nomor</label>
+                    <input
+                      name="nomor"
+                      value={form.nomor}
+                      onChange={handleChange}
+                      required
+                      className={inputStyle}
+                      placeholder="A-01"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label className={labelStyle}>Seri</label>
+                    <div className={`${inputStyle} bg-slate-50 text-slate-500`}>
+                      {form.seri || "—"}
+                    </div>
+                  </div>
+                )}
 
-                {/* --- CUSTOM DROPDOWN TIPE KAMAR --- */}
                 <div className="space-y-1.5 relative z-30">
                   <label className={labelStyle}>Tipe</label>
                   <div
@@ -123,27 +145,29 @@ const KamarModal = ({
                           transition={{ duration: 0.15 }}
                           className="absolute top-full mt-2 left-0 right-0 z-20 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden py-2"
                         >
-                          {["Standard", "Premium", "VIP"].map((tipe) => (
-                            <div
-                              key={tipe}
-                              onClick={() => {
-                                setForm({ ...form, tipe: tipe });
-                                setIsTipeOpen(false);
-                              }}
-                              className={`px-5 py-3 cursor-pointer text-sm font-bold transition-colors flex items-center justify-between ${
-                                form.tipe === tipe
-                                  ? "bg-indigo-50/80 text-indigo-600"
-                                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                              }`}
-                            >
-                              {tipe}
-                              {form.tipe === tipe && (
-                                <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </div>
-                          ))}
+                          {["Standard", "Premium", "VIP"].map((tipe) => {
+                            const status = getTipeStatus(tipe)
+                            return (
+                              <div
+                                key={tipe}
+                                onClick={() => !status && handleTipeClick(tipe)}
+                                className={`px-5 py-3 cursor-pointer text-sm font-bold transition-colors flex items-center justify-between ${
+                                  status === 'full'
+                                    ? "text-slate-300 cursor-not-allowed"
+                                    : form.tipe === tipe
+                                      ? "bg-indigo-50/80 text-indigo-600"
+                                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                }`}
+                              >
+                                <span>{tipe}{status === 'full' ? ' (Penuh)' : ''}</span>
+                                {form.tipe === tipe && (
+                                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </div>
+                            )
+                          })}
                         </motion.div>
                       </>
                     )}
@@ -151,7 +175,6 @@ const KamarModal = ({
                 </div>
               </div>
 
-              {/* --- CUSTOM CHECKBOX FASILITAS --- */}
               <div className="space-y-1.5">
                 <label className={labelStyle}>Fasilitas</label>
                 <div className="grid grid-cols-2 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-2xl">
@@ -166,7 +189,6 @@ const KamarModal = ({
                         }}
                         className="flex items-center gap-3 cursor-pointer group"
                       >
-                        {/* Lingkaran Checkbox Custom */}
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                           isChecked
                             ? "bg-indigo-600 border-indigo-600"
@@ -194,76 +216,109 @@ const KamarModal = ({
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className={labelStyle}>Harga Sewa (Rp)</label>
-                <input
-                  name="harga"
-                  type="number"
-                  value={form.harga}
-                  onChange={handleChange}
-                  required
-                  className={inputStyle}
-                  placeholder="1500000"
-                />
-              </div>
-
-              {/* --- CUSTOM DROPDOWN STATUS KAMAR --- */}
-              <div className="space-y-1.5 relative z-20">
-                <label className={labelStyle}>Status Kamar</label>
-                <div
-                  onClick={() => setIsStatusOpen(!isStatusOpen)}
-                  className={`${inputStyle} flex items-center justify-between cursor-pointer`}
-                >
-                  <span className="font-medium text-slate-800">
-                    {form.status === "kosong" ? "Kosong (Tersedia)" : "Terisi"}
-                  </span>
-                  <svg
-                    className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isStatusOpen ? "rotate-180" : ""}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className={labelStyle}>Harga Sewa (Rp)</label>
+                  <input
+                    name="harga"
+                    type="number"
+                    value={form.harga}
+                    onChange={handleChange}
+                    required
+                    className={inputStyle}
+                    placeholder="1500000"
+                  />
                 </div>
 
-                <AnimatePresence>
-                  {isStatusOpen && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setIsStatusOpen(false)}></div>
-                      <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute bottom-full mb-2 left-0 right-0 z-20 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden py-2"
+                <div className="space-y-1.5">
+                  <label className={labelStyle}>Batas Kamar</label>
+                  <input
+                    name="batas_kamar"
+                    type="number"
+                    min="1"
+                    value={form.batas_kamar}
+                    onChange={handleChange}
+                    className={inputStyle}
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {editId && (
+                  <div className="space-y-1.5 relative z-20">
+                    <label className={labelStyle}>Status Kamar</label>
+                    <div
+                      onClick={() => setIsStatusOpen(!isStatusOpen)}
+                      className={`${inputStyle} flex items-center justify-between cursor-pointer`}
+                    >
+                      <span className="font-medium text-slate-800">
+                        {form.status === "kosong" ? "Kosong (Tersedia)" : "Terisi"}
+                      </span>
+                      <svg
+                        className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isStatusOpen ? "rotate-180" : ""}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
                       >
-                        {[
-                          { val: "kosong", label: "Kosong (Tersedia)" },
-                          { val: "terisi", label: "Terisi" },
-                        ].map((item) => (
-                          <div
-                            key={item.val}
-                            onClick={() => {
-                              setForm({ ...form, status: item.val });
-                              setIsStatusOpen(false);
-                            }}
-                            className={`px-5 py-3 cursor-pointer text-sm font-bold transition-colors flex items-center justify-between ${
-                              form.status === item.val
-                                ? "bg-indigo-50/80 text-indigo-600"
-                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                            }`}
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+
+                    <AnimatePresence>
+                      {isStatusOpen && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setIsStatusOpen(false)}></div>
+                          <motion.div
+                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute bottom-full mb-2 left-0 right-0 z-20 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden py-2"
                           >
-                            {item.label}
-                            {form.status === item.val && (
-                              <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                        ))}
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
+                            {[
+                              { val: "kosong", label: "Kosong (Tersedia)" },
+                              { val: "terisi", label: "Terisi" },
+                            ].map((item) => (
+                              <div
+                                key={item.val}
+                                onClick={() => {
+                                  setForm({ ...form, status: item.val });
+                                  setIsStatusOpen(false);
+                                }}
+                                className={`px-5 py-3 cursor-pointer text-sm font-bold transition-colors flex items-center justify-between ${
+                                  form.status === item.val
+                                    ? "bg-indigo-50/80 text-indigo-600"
+                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                }`}
+                              >
+                                {item.label}
+                                {form.status === item.val && (
+                                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </div>
+                            ))}
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className={labelStyle}>Dalam Renovasi</label>
+                  <label className={`${inputStyle} flex items-center gap-3 cursor-pointer`}>
+                    <input
+                      type="checkbox"
+                      checked={form.renovasi === 1 || form.renovasi === true}
+                      onChange={(e) => setForm({ ...form, renovasi: e.target.checked ? 1 : 0 })}
+                      className="w-5 h-5 rounded accent-indigo-600"
+                    />
+                    <span className="text-sm text-slate-600">
+                      {form.renovasi ? "🔧 Ya, sedang renovasi" : "Tidak"}
+                    </span>
+                  </label>
+                </div>
               </div>
 
               <div className="flex gap-4 pt-4">

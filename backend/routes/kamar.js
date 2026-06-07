@@ -1,78 +1,138 @@
 const express = require('express')
 const router = express.Router()
-const db = require('../db')
+const pool = require('../dbAsync')
+const AppError = require('../utils/AppError')
+const { kamar: kamarValidation, validate } = require('../utils/validation')
 
-router.get('/', (req, res) => {
-  db.query('SELECT * FROM kamar', (err, results) => {
-    if (err) return res.status(500).json({ message: 'Server error' })
-    res.json(results)
-  })
-})
+const SERI_MAP = { Standard: 'A', Premium: 'B', VIP: 'C' }
 
-router.post('/', (req, res) => {
-  const { nomor, tipe, harga, fasilitas } = req.body
-  db.query('INSERT INTO kamar (nomor, tipe, harga, fasilitas) VALUES (?, ?, ?, ?)',
-    [nomor, tipe, harga, fasilitas],
-    (err) => {
-      if (err) return res.status(500).json({ message: 'Server error' })
-      res.json({ message: 'Kamar berhasil ditambahkan' })
-    }
-  )
-})
-
-router.put('/:id', (req, res) => {
-  const { nomor, tipe, harga, fasilitas, status } = req.body
-
-  // Kalau mau diubah jadi kosong, cek dulu ada penyewa aktif ga
-  if (status === 'kosong') {
-    db.query(
-      'SELECT * FROM penyewa WHERE id_kamar = ? AND status = "aktif"',
-      [req.params.id],
-      (err, results) => {
-        if (err) return res.status(500).json({ message: 'Server error' })
-        if (results.length > 0) {
-          return res.status(400).json({
-            message: `Kamar masih ditempati oleh ${results[0].nama}. Keluarkan penyewa terlebih dahulu.`
-          })
-        }
-
-        // Aman, tidak ada penyewa aktif
-        db.query(
-          'UPDATE kamar SET nomor=?, tipe=?, harga=?, fasilitas=?, status=? WHERE id=?',
-          [nomor, tipe, harga, fasilitas, status, req.params.id],
-          (err) => {
-            if (err) return res.status(500).json({ message: 'Server error' })
-            res.json({ message: 'Kamar berhasil diupdate' })
-          }
-        )
-      }
-    )
-  } else {
-    // Status bukan kosong, langsung update
-    db.query(
-      'UPDATE kamar SET nomor=?, tipe=?, harga=?, fasilitas=?, status=? WHERE id=?',
-      [nomor, tipe, harga, fasilitas, status, req.params.id],
-      (err) => {
-        if (err) return res.status(500).json({ message: 'Server error' })
-        res.json({ message: 'Kamar berhasil diupdate' })
-      }
-    )
+router.get('/', async (req, res, next) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM kamar ORDER BY seri, nomor')
+    res.json(rows)
+  } catch (err) {
+    next(err)
   }
 })
 
-router.delete('/:id', (req, res) => {
-  db.query('DELETE FROM kamar WHERE id = ?', [req.params.id], (err) => {
-    if (err) return res.status(500).json({ message: 'Server error' })
-    res.json({ message: 'Kamar berhasil dihapus' })
-  })
+router.get('/limits', async (req, res, next) => {
+  try {
+    const [limits] = await pool.query('SELECT * FROM kamar_limits ORDER BY seri')
+    const [counts] = await pool.query(
+      'SELECT seri, COUNT(*) as total FROM kamar GROUP BY seri'
+    )
+    const merged = limits.map(l => {
+      const found = counts.find(c => c.seri === l.seri)
+      return {
+        ...l,
+        total: found ? found.total : 0,
+        sisa: l.max_kamar - (found ? found.total : 0)
+      }
+    })
+    res.json(merged)
+  } catch (err) {
+    next(err)
+  }
 })
 
-router.get('/:id', (req, res) => {
-  const { id } = req.params;
-  db.query("SELECT * FROM kamar WHERE id = ?", [id], (err, result) => {
-    if (err) return res.status(500).send(err);
-    res.json(result[0]);
-  });
-});
+router.post('/', kamarValidation, validate, async (req, res, next) => {
+  try {
+    const { tipe, harga, fasilitas, batas_kamar } = req.body
+    const seri = SERI_MAP[tipe] || 'A'
+
+    const [[limitRow]] = await pool.query(
+      'SELECT max_kamar FROM kamar_limits WHERE seri = ?', [seri]
+    )
+    if (limitRow) {
+      const [[{ count }]] = await pool.query(
+        'SELECT COUNT(*) as count FROM kamar WHERE seri = ?', [seri]
+      )
+      if (count >= limitRow.max_kamar) {
+        throw new AppError(
+          `Kamar seri ${seri} sudah penuh (max ${limitRow.max_kamar} kamar). Hapus kamar yang ada atau ubah limit.`,
+          400
+        )
+      }
+    }
+
+    const [last] = await pool.query(
+      'SELECT nomor FROM kamar WHERE seri = ? ORDER BY id DESC LIMIT 1',
+      [seri]
+    )
+    let nextNum = 1
+    if (last.length > 0) {
+      const match = last[0].nomor.match(/-(\d+)$/)
+      if (match) nextNum = parseInt(match[1]) + 1
+    }
+    const nomor = `${seri}-${String(nextNum).padStart(2, '0')}`
+
+    await pool.query(
+      'INSERT INTO kamar (nomor, seri, tipe, harga, fasilitas, batas_kamar, status, renovasi) VALUES (?, ?, ?, ?, ?, ?, ?, 0)',
+      [nomor, seri, tipe, harga, fasilitas, batas_kamar || 1, 'kosong']
+    )
+    res.json({ message: 'Kamar berhasil ditambahkan', nomor, seri })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { nomor, tipe, harga, fasilitas, status, seri, batas_kamar, renovasi } = req.body
+
+    if (status === 'kosong') {
+      const [penyewa] = await pool.query(
+        'SELECT * FROM penyewa WHERE id_kamar = ? AND status = "aktif"',
+        [req.params.id]
+      )
+      if (penyewa.length > 0) {
+        throw new AppError(
+          `Kamar masih ditempati oleh ${penyewa[0].nama}. Keluarkan penyewa terlebih dahulu.`,
+          400
+        )
+      }
+    }
+
+    if (renovasi) {
+      const [penyewa] = await pool.query(
+        'SELECT * FROM penyewa WHERE id_kamar = ? AND status = "aktif"',
+        [req.params.id]
+      )
+      if (penyewa.length > 0) {
+        throw new AppError(
+          `Kamar masih ditempati oleh ${penyewa[0].nama}. Keluarkan penyewa terlebih dahulu sebelum merenovasi.`,
+          400
+        )
+      }
+    }
+
+    await pool.query(
+      'UPDATE kamar SET nomor=?, seri=?, tipe=?, harga=?, fasilitas=?, status=?, batas_kamar=?, renovasi=? WHERE id=?',
+      [nomor, seri, tipe, harga, fasilitas, renovasi ? 'kosong' : status, batas_kamar, renovasi ? 1 : 0, req.params.id]
+    )
+    res.json({ message: 'Kamar berhasil diupdate' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await pool.query('DELETE FROM kamar WHERE id = ?', [req.params.id])
+    res.json({ message: 'Kamar berhasil dihapus' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const [result] = await pool.query("SELECT * FROM kamar WHERE id = ?", [id])
+    res.json(result[0])
+  } catch (err) {
+    next(err)
+  }
+})
 
 module.exports = router
